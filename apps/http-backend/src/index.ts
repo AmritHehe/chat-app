@@ -22,14 +22,15 @@ app.post("/signup" , async (req , res )=> {
     }
     
     try { 
-        await  prisma.user.create({
+        const user =  await  prisma.user.create({
             data : { 
                 email : parseData.data?.username ,
                 password : parseData.data?.password ,
                 name : parseData.data.name,
             }
         }) 
-        res.json("user created successfully")
+        res.json({ userId : user.id}
+        )
     } 
     catch(e){ 
         res.status(411).json({ 
@@ -40,71 +41,102 @@ app.post("/signup" , async (req , res )=> {
     
     
 })
-app.post("/signin", async (req, res) => {
-    const parsedData = SigninSchema.safeParse(req.body);
-    if (!parsedData.success) {
-        res.json({
-            message: "Incorrect inputs"
-        })
-        return;
-    }
 
-    // TODO: Compare the hashed pws here
-    const user = await prismaClient.user.findFirst({
-        where: {
-            email: parsedData.data.username,
-            password: parsedData.data.password
-        }
-    })
 
-    if (!user) {
-        res.status(403).json({
-            message: "Not authorized"
-        })
-        return;
-    }
-
-    const token = jwt.sign({
-        userId: user?.id
-    }, JWT_SECRET);
-
-    res.json({
-        token
-    })
-})
-
-// app.post("/signin" , (req , res) => { 
-//     const data = SigninSchema.safeParse(req.body); 
-//     if(!data.success){ 
-//         res.json({ 
-//             message : "Incorrect inputes"
-//         })
-//         return;
-//     }
-//     const username = req.body.username ; 
-//     const password = req.body.password ; 
-
-    //check if there is users in user array or not otherwise return 
-    //if user found , return them a jwt , 
-    //else return them error or imvalid credentials 
-    // const token = jwt.sign({
-    //     // userId
-    // },JWT_SECRET); 
-
-    // res.json({ 
-    //     token
-    // })
-// })
-app.post ("/room",middleware ,(req , res)=> { 
-    const data = CreateRoomSchema.safeParse(req.body); 
-    if(!data.success){ 
+app.post("/signin" , async  (req , res) => { 
+    const  parseData = SigninSchema.safeParse(req.body); 
+    if(!parseData.success){  
         res.json({ 
             message : "Incorrect inputes"
         })
         return;
     }
-    //dbcall
+    const user = await prismaClient.user.findFirst ({ 
+        where : { 
+            email : parseData.data.username , 
+            password : parseData.data.password
+        }   
+    })
+
+    if(!user) { 
+        res.status(403).json(
+            { 
+                message : "not authorised"
+            }
+        )
+        return;
+    }
+    // check if there is users in user array or not otherwise return 
+    // if user found , return them a jwt , 
+    // else return them error or imvalid credentials 
+    const token = jwt.sign({
+        userId : user?.id
+    },JWT_SECRET); 
+
     res.json({ 
-        roomId : 123 
+        token
+    })
+})
+app.post ("/room",middleware , async (req , res)=> { 
+    const  parseData = CreateRoomSchema.safeParse(req.body); 
+    if(!parseData.success){ 
+        res.json({ 
+            message : "Incorrect inputes"
+        })
+        return;
+    }
+    //@ts-ignore
+    const userId = req.userId; 
+    try { 
+        const room = await prismaClient.room.create( { 
+            data : { 
+                slug : parseData.data.name , 
+                adminId : userId
+            }
+     })
+      
+    //dbcall
+        res.json({ 
+            roomId : room.id
+        })
+    } 
+    catch (e) { 
+        res.status(411).json({ 
+            message : "Room already exists with this name "
+        })
+    }
+})
+
+app.get("/chats/:roomId" , async (req , res) => { 
+    try { 
+        const roomId = Number(req.params.roomId); 
+        const messages = await prismaClient.chat.findMany({
+            where : { 
+                roomId : roomId
+            },
+            orderBy: { 
+                id : "desc"
+            },
+            take: 50
+        }); 
+        res.json({
+            messages
+        })
+    }
+    catch(e) { 
+         res.json({
+            messages : {}
+         })
+    }
+})
+app.get("/room/:slug" , async (req , res) => { 
+    const slug = req.params.slug; 
+    const room = await prismaClient.room.findFirst({
+        where : { 
+            slug
+        },
+    }); 
+    res.json({
+        room
     })
 })
