@@ -10,6 +10,7 @@ type Shape = {
     y:number;
     width: number;
     height : number; 
+    // isDeleted : boolean;
 } | { 
     type: "circle";
     centerX : number; 
@@ -89,13 +90,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             clicked = true
             startX = e.clientX
             startY = e.clientY
-            
+            console.log("start X " + startX , "start Y " +  startY)
             
             arrX.length = 0; 
             arrY.length = 0;
-            console.log(arrX); 
-            console.log(arrY)
-            console.log("before " + JSON.stringify({existingShapes}));
+            // console.log(arrX); 
+            // console.log(arrY)
             if(shapeRef.current == "pencil"){ 
                 ctx.moveTo(startX ,startY)
             }
@@ -113,6 +113,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         console.log('yes'); 
                         Drag = true;
                         currentShapeIndex = index;
+                        // shape.isDeleted = true;
                         return;
                     }
                     else{ 
@@ -130,9 +131,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         })
         canvas.addEventListener("mouseup" , (e)=> { 
         clicked = false ;
-       
-        const width = e.clientX - startX ; 
-        const height = e.clientY -startY ; 
+        let width = e.clientX - startX ; 
+        let height = e.clientY -startY ; 
 
         let shape :Shape | null = null;
         if(shapeRef.current == "rect"){
@@ -142,7 +142,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 x : startX ,
                 y : startY , 
                 height,
-                width
+                width,
+                // isDeleted : false
             }
            
         }
@@ -179,18 +180,33 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             e.preventDefault(); 
             Drag = false ; 
+            console.log(startX , startY)
+            // let current_shape = existingShapes[currentShapeIndex] 
+            // let hei = -999
+            // let wid = -999
+            // if(current_shape.type == "rect"){ 
+            //    hei = current_shape.height; 
+            //    wid = current_shape.width 
+            // }
+            // shape = { 
+            //     type : "rect", 
+            //     x :  startX , 
+            //     y : startY , 
+            //     height: hei ,
+            //     width : wid , 
+            //     isDeleted : false
+            // }
             shape = { 
-                type : "drag"
+                type: " drag"
             }
-            console.log("after : " + JSON.stringify({existingShapes}))
+
         }
         else { 
             return
         }
         
-        if(shapeRef.current != "drag"){
         existingShapes.push(shape)
-        console.log("after : " + JSON.stringify({existingShapes}))
+        console.log(existingShapes)
             socket.send(JSON.stringify({
                 type : "chat",
                 message : JSON.stringify({
@@ -198,7 +214,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }),
                 roomId
             }))
-        }
+        
             // console.log(e.clientX)
             // console.log(e.clientY)
         })
@@ -248,23 +264,25 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                         let dx = mouseX - startX ; 
                         let dy = mouseY - startY ; 
-                        console.log(dx , dy); 
+                        // console.log(dx , dy); 
                         
                         
                         let current_shape = existingShapes[currentShapeIndex]
-                        console.log(currentShapeIndex)
-                        console.log(current_shape)
+                       
+                        // console.log(currentShapeIndex)
+                        // console.log(current_shape)
                         if(current_shape.type == "rect"){ 
                             current_shape.x += dx ; 
                             current_shape.y += dy;
-                         
+                        
                          clearCanvas(existingShapes , canvas , ctx)
 
                          startX = mouseX 
                          startY = mouseY
-                        //  ctx.strokeStyle = "rgba(255 ,255, 255)"
-                        //  ctx.strokeRect(current_shape.x , current_shape.y, current_shape.width , current_shape.height);
-                        } 
+                        
+                         ctx.strokeStyle = "rgba(255 ,255, 255)"
+                         ctx.strokeRect(current_shape.x , current_shape.y, current_shape.width , current_shape.height); 
+                        }
                     }
                 }
                 // else if(shapeRef.current == "pencil"){ }
@@ -282,9 +300,11 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
       ctx.fillStyle = "rgba(0,0,0)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
       existingShapes.map((shape)=> { 
-            if(shape.type === "rect") { 
+            if(shape.type === "rect" ) { 
+                // if(!shape.isDeleted){
                 ctx.strokeStyle = "rgba(255 ,255, 255)"
-                ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
+                ctx.strokeRect(shape.x, shape.y , shape.width , shape.height);
+                // } 
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
                     ctx.arc(shape.centerX , shape.centerY , Math.abs(shape.radius) , 0 , Math.PI * 2) 

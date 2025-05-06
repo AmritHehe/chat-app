@@ -5,7 +5,7 @@ export default function Canvas ({roomId , socket} : {
     roomId : string , 
     socket : WebSocket
 } ){ 
-    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | string
+    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | string
 
     const canvasRef = useRef<HTMLCanvasElement>(null); 
     const [currShape , setShape] = useState<Shapee>("");
@@ -44,6 +44,9 @@ export default function Canvas ({roomId , socket} : {
             </button>
             <button onClick={()=> {setShape("pencil")}} className="bg-white p-4 m-2 rounded-lg">
                 Pencil
+            </button>
+            <button onClick={()=> {setShape("drag")}} className="bg-white p-4 m-2 rounded-lg">
+                Drag
             </button>
         </div>
      </div>

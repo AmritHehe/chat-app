@@ -87,6 +87,20 @@ wss.on('connection', function connection(ws, request) {
           }
         })
       }
+      // if(parseData.type === "update"){ 
+      //   const message = parseData.message ; 
+      //   const roomId = parseData.roomId ; 
+
+      //   await prismaClient.chat.update({
+      //     where: { 
+      //       id : message
+      //     },
+      //     data : { 
+
+      //     }
+
+      //   })
+      // }
 
 
 
