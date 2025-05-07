@@ -5,6 +5,7 @@ import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { Flow_Circular } from "next/font/google";
 import { SocketAddress } from "net";
+import { cookies } from "next/headers";
 type Shape = { 
     type: "rect" ; 
     x:number;
@@ -47,6 +48,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         
         const message = JSON.parse(event.data); 
         console.log("websocket message " + JSON.stringify(message))
+        // clearCanvas(existingShapes , canvas , ctx )
         if(message.type == "chat"){ 
             const parseShape = JSON.parse(message.message)
             const id:number = JSON.parse(message.id)
@@ -55,6 +57,24 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             existingShapes.push(mainShape)
             console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
             clearCanvas(existingShapes , canvas , ctx )
+            console.log("rerenderd")
+        }
+        if(message.type == "update"){ 
+            const parseShape =message.message
+           for(let i = 0 ; i < existingShapes.length ; i++) { 
+            if(parseShape.DBid == existingShapes[i].DBid){ 
+                existingShapes[i] = parseShape;
+                console.log("updated the exisitng shape")
+                console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                clearCanvas(existingShapes , canvas , ctx )
+                return;
+            }
+            else { 
+                console.log("cant find the exisiting shape! oh oh")
+            }
+           }
+            
+            
         }
     }
     
@@ -121,7 +141,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     if(is_mouse_in_shape(startX , startY ,shape)){
                         if(shape.DBid == null){ 
                             console.warn("shape foound nut missign db id " , shape); 
-                        
+                            return;
                         }
                         else{ 
                             console.log("found shape +id " )
@@ -226,8 +246,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 //@ts-ignore
                 message :  shape,
                 roomId
-        }))
+            }))
             console.log("after : " + JSON.stringify({existingShapes}))
+            
         }
         else { 
             return
@@ -344,6 +365,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.lineCap = "round";
                     ctx.stroke()
                 }
+                
                 
                
                 
