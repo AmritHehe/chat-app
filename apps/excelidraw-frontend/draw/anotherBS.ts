@@ -4,39 +4,34 @@ import { eventNames } from "process";
 import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { Flow_Circular } from "next/font/google";
-import { SocketAddress } from "net";
 type Shape = { 
     type: "rect" ; 
     x:number;
     y:number;
     width: number;
     height : number; 
-    DBid ?: number
 } | { 
     type: "circle";
     centerX : number; 
     centerY :number; 
     radius : number;
-    DBid ?:number
 }
 | { 
    type: "pencil" ;
    X  : number[] ; 
    Y :number[] ; 
-   DBid ?: number ; 
-
 } | {
     type : "drag" ; 
-    DBid ?: number
     
 }
+type ShapeWithId = { shape : Shape  ; id :number}
 
 
 export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> ){
    
     const ctx = canvas.getContext("2d")
 
-    let existingShapes: Shape[] = await getExistingShapes(roomId)
+    let existingShapes: ShapeWithId[] | any = await getExistingShapes(roomId)
     let  arrX : any = [];
     let  arrY: any = [];    
     if(!ctx){ 
@@ -48,29 +43,23 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         const message = JSON.parse(event.data); 
         console.log("websocket message " + JSON.stringify(message))
         if(message.type == "chat"){ 
-            const parseShape = JSON.parse(message.message)
-            const id:number = JSON.parse(message.id)
-            const mainShape = parseShape.shape 
-            mainShape.DBid  = id
-            existingShapes.push(mainShape)
-            console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
-            clearCanvas(existingShapes , canvas , ctx )
+            const parseShape = JSON.parse(message.message , message.id) 
+            existingShapes.push({shape : parseShape.shape , id : parseShape.id})
+            console.log("existing shapes log : " + existingShapes)
+            clearCanvas(existingShapes.shape , canvas , ctx )
         }
     }
     
 
         
 
-        clearCanvas(existingShapes , canvas , ctx )
+        clearCanvas(existingShapes.shape , canvas , ctx )
         let clicked = false ; 
         let startX = 0; 
         let startY = 0;
         let Drag = false; 
         let currentShapeIndex :number = 0 
-        let databaseId :number ;
-        let current_shape :any  ={ 
-
-        }
+        let databaseId = 0;
         
 
 
@@ -115,24 +104,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             let index = 0
             if(shapeRef.current == "drag"){     
-            e.preventDefault()  
-            for(let shape of existingShapes){  
+            e.preventDefault()     
+            for(let shape of existingShapes.shape){  
                 if(shape.type == "rect"){
                     if(is_mouse_in_shape(startX , startY ,shape)){
-                        if(shape.DBid == null){ 
-                            console.warn("shape foound nut missign db id " , shape); 
-                        
-                        }
-                        else{ 
-                            console.log("found shape +id " )
-                        }
                         console.log('yes'); 
                         Drag = true;
-                        
                         currentShapeIndex = index;
-                        console.log("currentShapeIndexFrom mosueee Down : " + currentShapeIndex)
-                        //@ts-ignore
-                        databaseId = shape.DBid;
+                        // databaseId = 
                         return;
                     }
                     else{ 
@@ -199,43 +178,17 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             e.preventDefault(); 
             Drag = false ; 
-            
-            console.log("currentShapeIndex afterwards :::::::>" + currentShapeIndex)
-            console.log("currenttt shape bhi haii " +JSON.stringify(current_shape))
-            for(let i = 0 ; i < existingShapes.length ; i++){ 
-                if (currentShapeIndex == i){ 
-                    current_shape = existingShapes[i]; 
-                    console.log("foundeddd the shape here it is : " + current_shape)
-                }
-                
-            }
-            
-            console.log("currrent shape : " + current_shape)
             shape = { 
-                type : "rect" , 
-                x: current_shape.x,
-                y: current_shape.y , 
-                width :current_shape.width, 
-                height : current_shape.height,
-                DBid : current_shape.DBid
-
+                type : "drag"
             }
-            console.log("current shape db ID "+current_shape.DBid)
-            socket.send(JSON.stringify({
-                type : "update",
-                //@ts-ignore
-                message :  shape,
-                roomId
-        }))
             console.log("after : " + JSON.stringify({existingShapes}))
         }
         else { 
             return
         }
         
-        
         if(shapeRef.current != "drag"){
-       
+        existingShapes.push(shape)
         console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
                 type : "chat",
@@ -297,14 +250,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         console.log(dx , dy); 
                         
                         
-                        current_shape = existingShapes[currentShapeIndex]
+                        let current_shape = existingShapes[currentShapeIndex].shape
                         console.log(currentShapeIndex)
                         console.log(current_shape)
                         if(current_shape.type == "rect"){ 
                             current_shape.x += dx ; 
                             current_shape.y += dy;
                          
-                         clearCanvas(existingShapes , canvas , ctx)
+                         clearCanvas(existingShapes.shape , canvas , ctx)
 
                          startX = mouseX 
                          startY = mouseY
@@ -323,11 +276,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             } 
         })
 }
-function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx : CanvasRenderingContext2D ){ 
+function clearCanvas(existingShapes : ShapeWithId[] ,canvas : HTMLCanvasElement, ctx : CanvasRenderingContext2D ){ 
       ctx.clearRect(0 , 0 , canvas.width , canvas.height);
       ctx.fillStyle = "rgba(0,0,0)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
-      existingShapes.map((shape)=> { 
+      existingShapes.map(({shape})=> { 
             if(shape.type === "rect") { 
                 ctx.strokeStyle = "rgba(255 ,255, 255)"
                 ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
@@ -360,9 +313,13 @@ async function getExistingShapes(roomId : string ) {
     const res = await  axios.get(`${HTTP_BACKEND}/chats/${roomId}`); 
     const messages = res.data.messages; 
     
-    const shapes = messages.map((x : {message : string})=> { 
+    const shapes = messages.map((x : {message : string ; id : number})=> { 
         const messageData = JSON.parse(x.message)
-        return messageData.shape;
+        return {
+            shape : messageData.shape ,
+            id : x.id
+        } 
+
     })
     return shapes;
 }
