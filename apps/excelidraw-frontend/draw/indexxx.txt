@@ -4,31 +4,38 @@ import { eventNames } from "process";
 import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { Flow_Circular } from "next/font/google";
+import { SocketAddress } from "net";
+import { cookies } from "next/headers";
 type Shape = { 
     type: "rect" ; 
     x:number;
     y:number;
     width: number;
     height : number; 
-    // isDeleted : boolean;
+    DBid ?: number
 } | { 
     type: "circle";
     centerX : number; 
     centerY :number; 
     radius : number;
+    DBid ?:number
 }
 | { 
    type: "pencil" ;
    X  : number[] ; 
    Y :number[] ; 
+   DBid ?: number ; 
+
 } | {
     type : "drag" ; 
+    DBid ?: number
     
 }
 
 
 export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> ){
-   
+    // canvas.width = window.innerWidth
+    // canvas.height = window.innerHeight
     const ctx = canvas.getContext("2d")
 
     let existingShapes: Shape[] = await getExistingShapes(roomId)
@@ -39,12 +46,36 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     }
 
     socket.onmessage = (event) => { 
+        
         const message = JSON.parse(event.data); 
-
+        console.log("websocket message " + JSON.stringify(message))
+        // clearCanvas(existingShapes , canvas , ctx )
         if(message.type == "chat"){ 
             const parseShape = JSON.parse(message.message)
-            existingShapes.push(parseShape.shape)
+            const id:number = JSON.parse(message.id)
+            const mainShape = parseShape.shape 
+            mainShape.DBid  = id
+            existingShapes.push(mainShape)
+            console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
             clearCanvas(existingShapes , canvas , ctx )
+            console.log("rerenderd")
+        }
+        if(message.type == "update"){ 
+            const parseShape =message.message
+           for(let i = 0 ; i < existingShapes.length ; i++) { 
+            if(parseShape.DBid == existingShapes[i].DBid){ 
+                existingShapes[i] = parseShape;
+                console.log("updated the exisitng shape")
+                console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                clearCanvas(existingShapes , canvas , ctx )
+                return;
+            }
+            else { 
+                console.log("cant find the exisiting shape! oh oh")
+            }
+           }
+            
+            
         }
     }
     
@@ -57,7 +88,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let startY = 0;
         let Drag = false; 
         let currentShapeIndex :number = 0 
-        
+        let databaseId :number ;
+        let current_shape :any  ={ 
+
+        }
         
 
 
@@ -90,30 +124,36 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             clicked = true
             startX = e.clientX
             startY = e.clientY
-            console.log("start X " + startX , "start Y " +  startY)
+            
             
             arrX.length = 0; 
             arrY.length = 0;
-            // console.log(arrX); 
-            // console.log(arrY)
+            console.log(arrX); 
+            console.log(arrY)
+            console.log("before " + JSON.stringify({existingShapes}));
             if(shapeRef.current == "pencil"){ 
                 ctx.moveTo(startX ,startY)
             }
             let index = 0
-            if(shapeRef.current == "drag"){ 
-                
-                
-                e.preventDefault()
-                
-
-                
+            if(shapeRef.current == "drag"){     
+            e.preventDefault()  
             for(let shape of existingShapes){  
                 if(shape.type == "rect"){
                     if(is_mouse_in_shape(startX , startY ,shape)){
+                        if(shape.DBid == null){ 
+                            console.warn("shape foound nut missign db id " , shape); 
+                            return;
+                        }
+                        else{ 
+                            console.log("found shape +id " )
+                        }
                         console.log('yes'); 
                         Drag = true;
+                        
                         currentShapeIndex = index;
-                        // shape.isDeleted = true;
+                        console.log("currentShapeIndexFrom mosueee Down : " + currentShapeIndex)
+                        //@ts-ignore
+                        databaseId = shape.DBid;
                         return;
                     }
                     else{ 
@@ -131,8 +171,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         })
         canvas.addEventListener("mouseup" , (e)=> { 
         clicked = false ;
-        let width = e.clientX - startX ; 
-        let height = e.clientY -startY ; 
+       
+        const width = e.clientX - startX ; 
+        const height = e.clientY -startY ; 
 
         let shape :Shape | null = null;
         if(shapeRef.current == "rect"){
@@ -142,8 +183,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 x : startX ,
                 y : startY , 
                 height,
-                width,
-                // isDeleted : false
+                width
             }
            
         }
@@ -180,33 +220,45 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             e.preventDefault(); 
             Drag = false ; 
-            console.log(startX , startY)
-            // let current_shape = existingShapes[currentShapeIndex] 
-            // let hei = -999
-            // let wid = -999
-            // if(current_shape.type == "rect"){ 
-            //    hei = current_shape.height; 
-            //    wid = current_shape.width 
-            // }
-            // shape = { 
-            //     type : "rect", 
-            //     x :  startX , 
-            //     y : startY , 
-            //     height: hei ,
-            //     width : wid , 
-            //     isDeleted : false
-            // }
-            shape = { 
-                type: " drag"
+            
+            console.log("currentShapeIndex afterwards :::::::>" + currentShapeIndex)
+            console.log("currenttt shape bhi haii " +JSON.stringify(current_shape))
+            for(let i = 0 ; i < existingShapes.length ; i++){ 
+                if (currentShapeIndex == i){ 
+                    current_shape = existingShapes[i]; 
+                    console.log("foundeddd the shape here it is : " + current_shape)
+                }
+                
             }
+            
+            console.log("currrent shape : " + current_shape)
+            shape = { 
+                type : "rect" , 
+                x: current_shape.x,
+                y: current_shape.y , 
+                width :current_shape.width, 
+                height : current_shape.height,
+                DBid : current_shape.DBid
 
+            }
+            console.log("current shape db ID "+current_shape.DBid)
+            socket.send(JSON.stringify({
+                type : "update",
+                //@ts-ignore
+                message :  shape,
+                roomId
+            }))
+            console.log("after : " + JSON.stringify({existingShapes}))
+            
         }
         else { 
             return
         }
         
-        existingShapes.push(shape)
-        console.log(existingShapes)
+        
+        if(shapeRef.current != "drag"){
+       
+        console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
                 type : "chat",
                 message : JSON.stringify({
@@ -214,7 +266,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }),
                 roomId
             }))
-        
+        }
             // console.log(e.clientX)
             // console.log(e.clientY)
         })
@@ -264,25 +316,23 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                         let dx = mouseX - startX ; 
                         let dy = mouseY - startY ; 
-                        // console.log(dx , dy); 
+                        console.log(dx , dy); 
                         
                         
-                        let current_shape = existingShapes[currentShapeIndex]
-                       
-                        // console.log(currentShapeIndex)
-                        // console.log(current_shape)
+                        current_shape = existingShapes[currentShapeIndex]
+                        console.log(currentShapeIndex)
+                        console.log(current_shape)
                         if(current_shape.type == "rect"){ 
                             current_shape.x += dx ; 
                             current_shape.y += dy;
-                        
+                         
                          clearCanvas(existingShapes , canvas , ctx)
 
                          startX = mouseX 
                          startY = mouseY
-                        
-                         ctx.strokeStyle = "rgba(255 ,255, 255)"
-                         ctx.strokeRect(current_shape.x , current_shape.y, current_shape.width , current_shape.height); 
-                        }
+                        //  ctx.strokeStyle = "rgba(255 ,255, 255)"
+                        //  ctx.strokeRect(current_shape.x , current_shape.y, current_shape.width , current_shape.height);
+                        } 
                     }
                 }
                 // else if(shapeRef.current == "pencil"){ }
@@ -300,11 +350,9 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
       ctx.fillStyle = "rgba(0,0,0)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
       existingShapes.map((shape)=> { 
-            if(shape.type === "rect" ) { 
-                // if(!shape.isDeleted){
+            if(shape.type === "rect") { 
                 ctx.strokeStyle = "rgba(255 ,255, 255)"
-                ctx.strokeRect(shape.x, shape.y , shape.width , shape.height);
-                // } 
+                ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
                     ctx.arc(shape.centerX , shape.centerY , Math.abs(shape.radius) , 0 , Math.PI * 2) 
@@ -318,6 +366,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.lineCap = "round";
                     ctx.stroke()
                 }
+                
                 
                
                 

@@ -1,3 +1,5 @@
+// import { initDraw } from "@/draw";
+// import { initDraw } from "@/draw";
 import { initDraw } from "@/draw";
 import { useEffect, useRef, useState } from "react"
 
@@ -5,7 +7,7 @@ export default function Canvas ({roomId , socket} : {
     roomId : string , 
     socket : WebSocket
 } ){ 
-    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | string
+    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | "pan" |string
 
     const canvasRef = useRef<HTMLCanvasElement>(null); 
     const [currShape , setShape] = useState<Shapee>("");
@@ -24,7 +26,7 @@ export default function Canvas ({roomId , socket} : {
     return <>
     <div className="flex items-center justify-center">
         <div className="static w-screen h-screen">
-        <canvas   ref={canvasRef} width={1920} height={1080} > </canvas> 
+        <canvas id="canvas"  ref={canvasRef} > </canvas> 
         </div>
         <div className="absolute bottom-0 right-0 m-3 rounded bg-green-600">
             <button onClick={()=> {setShape("line")}} className="bg-white p-4 m-2 rounded-lg">
@@ -47,6 +49,9 @@ export default function Canvas ({roomId , socket} : {
             </button>
             <button onClick={()=> {setShape("drag")}} className="bg-white p-4 m-2 rounded-lg">
                 Drag
+            </button>
+            <button onClick={()=> {setShape("pan")}} className="bg-white p-4 m-2 rounded-lg">
+                Pan
             </button>
         </div>
      </div>

@@ -1,6 +1,8 @@
 "use client"
 
 import { WS_URL } from "@/config";
+// import { initDraw } from "@/draw";
+
 import { initDraw } from "@/draw";
 import { Socket } from "dgram";
 import { useEffect, useRef, useState } from "react";
