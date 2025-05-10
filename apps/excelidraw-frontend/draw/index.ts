@@ -3,6 +3,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { eventNames } from "process";
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
+import { json } from "stream/consumers";
 // import { Cambay, Caveat, Flow_Circular } from "next/font/google";
 // import { SocketAddress } from "net";
 // import { cookies } from "next/headers";
@@ -190,22 +191,58 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         function getEventLocation(e:any)
             {
-                return { x: e.clientX - offset_x, y: e.clientY-offset_y }        
+                return { x: e.clientX -offset_x , y: e.clientY - offset_y }        
   
             }
 
         function is_mouse_in_shape(x:number , y :number , shape :any){ 
-            let shape_Left = shape.x; 
-            let shape_Right = shape.x + shape.width;
-            let shape_top = shape.y;
-            let shape_bottom = shape.y + shape.height;
+            console.log("inside rect")
+            if(shape.type == "rect"){ 
+                let shape_Left = shape.x; 
+                let shape_Right = shape.x + shape.width;
+                let shape_top = shape.y;
+                let shape_bottom = shape.y + shape.height;
 
-            if(x > shape_Left && x < shape_Right && y > shape_top && y < shape_bottom){ 
-                return true
+                if(x > shape_Left && x < shape_Right && y > shape_top && y < shape_bottom){ 
+                    return true
+                 }
             }
+            else if(shape.type == "circle"){ 
+                console.log("I have reached till here (inside the circle if )")
+                console.log("shape : " + JSON.stringify(shape))
+                
+                let shape_left = shape.centerX - shape.radius; 
+                let shape_Right =  shape.centerX + shape.radius 
+                let shape_top = shape.radius + shape.centerY ; 
+                let shape_bottom = shape.centerY - shape.radius;
+                // console.log(shape_left )
+                // console.log(shape_Right)
+                // console.log(shape_top)
+                // console.log(shape_bottom) 
+                // console.log( x)
+                // console.log(y)
+                if(x > shape_left && x < shape_Right && y < shape_top && y > shape_bottom){ 
+                    return true
+                 }
+
+            }
+            else if (shape.type == "pencil"){ 
+                console.log("shape " + shape)
+                let arrayX = shape.X 
+                let arrayY = shape.Y
+                console.log("inside pensil")
+                for(let i = 0 ; i < shape.X.length ; i++){ 
+                    
+                    if(x == arrayX[i] || y == arrayY[i] || x == arrayX[i]+1 || x == arrayX[i] -1 || y == arrayY[i] - 1 || y == arrayY[i] + 1){
+                        return true
+                    }
+                 }
+            }
+            
             return false
         }
         canvas.addEventListener("mousedown" , (e) =>{
+            
             console.log(cameraOffset)
             cancelRedraw = true ; 
             console.log(shapeRef.current)
@@ -220,13 +257,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             console.log(arrY)
             console.log("before " + JSON.stringify({existingShapes}));
             if(shapeRef.current == "pencil"){ 
+                // ctx.beginPath()
                 ctx.moveTo(startX ,startY)
             }
             let index = 0
             if(shapeRef.current == "drag"){     
             e.preventDefault()  
             for(let shape of existingShapes){  
-                if(shape.type == "rect"){
+                if(shape.type == "rect" || shape.type == "circle" || shape.type == "pencil"){
                     if(is_mouse_in_shape(startX , startY ,shape)){
                         if(shape.DBid == null){ 
                             console.warn("shape foound nut missign db id " , shape); 
@@ -286,8 +324,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         else if(shapeRef.current == "circle"){ 
             const radius = Math.sqrt(width * width + height * height) / 2;
-            const centerX = (startX + (e.clientX - offset_x) )/ 2;
-            const centerY = (startY + (e.clientY - offset_y )) / 2;
+            const centerX = (startX + (e.clientX - cameraOffset.x) )/ 2;
+            const centerY = (startY + (e.clientY - cameraOffset.y )) / 2;
             
 
  
@@ -309,7 +347,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 X : arrX , 
                 Y : arrY
             }
-            
+            // Redraw()
         }
         else if (shapeRef.current == "drag"){ 
             if(!Drag){ 
@@ -329,14 +367,33 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             
             console.log("currrent shape : " + current_shape)
-            shape = { 
-                type : "rect" , 
-                x: current_shape.x,
-                y: current_shape.y , 
-                width :current_shape.width, 
-                height : current_shape.height,
-                DBid : current_shape.DBid
+            if(current_shape.type == "rect") { 
+                shape = { 
+                    type : "rect" , 
+                    x: current_shape.x,
+                    y: current_shape.y , 
+                    width :current_shape.width, 
+                    height : current_shape.height,
+                    DBid : current_shape.DBid
 
+                }
+            }
+            else if(current_shape.type == "circle"){ 
+                shape = { 
+                    type  : "circle", 
+                    radius :  current_shape.radius , 
+                    centerX : current_shape.centerX , 
+                    centerY : current_shape.centerY ,
+                    DBid : current_shape.DBid
+                }
+            }
+            else if (current_shape.type == "pencil"){ 
+                shape = { 
+                    type : "pencil" , 
+                    X : current_shape.X , 
+                    Y : current_shape.Y ,
+                    DBid : current_shape.DBid
+                }
             }
             console.log("current shape db ID "+current_shape.DBid)
             socket.send(JSON.stringify({
@@ -351,6 +408,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
         else if (shapeRef.current == "pan") { 
             lastZoom = cameraZoom
+            // clearCanvas(existingShapes , canvas , ctx)
+            Redraw()
         }
         else { 
             return
@@ -367,6 +426,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }),
                 roomId
             }))
+            arrX.length = 0; 
+            arrY.length = 0;
         }
             // console.log(e.clientX)
             // console.log(e.clientY)
@@ -380,8 +441,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 if(shapeRef.current == "rect"){
                     // console.log("inside the rect function")
                     // e.preventDefault()
-                    clearCanvas(existingShapes , canvas , ctx)
-                    // Redraw()
+                    // clearCanvas(existingShapes , canvas , ctx)
+                    Redraw()
                     // requestAnimationFrame(animate);
                     ctx.strokeStyle = "rgba(255 ,255, 255)"
                     ctx.strokeRect(startX , startY , width , height); 
@@ -389,10 +450,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }
                 else if(shapeRef.current == "circle"){ 
                     // e.preventDefault()
-                    clearCanvas(existingShapes , canvas , ctx )
+                    // clearCanvas(existingShapes , canvas , ctx )
+                    Redraw()
                     const radius = Math.sqrt(width * width + height * height) / 2;
-                    const centerX = (startX + (e.clientX - offset_x)) / 2;
-                    const centerY = (startY + (e.clientY - offset_y)) / 2;
+                    const centerX = (startX + (e.clientX - cameraOffset.x)) / 2;
+                    const centerY = (startY + (e.clientY - cameraOffset.y)) / 2;
 
                     ctx.beginPath();
                     ctx.arc(centerX , centerY , Math.abs(radius) , 0 , Math.PI * 2) 
@@ -404,9 +466,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     console.log("ArrayX" + arrX)
                     ctx.lineWidth = 1;
                     ctx.lineCap = 'round';
-                    arrX.push(e.clientX - offset_x)
-                    arrY.push(e.clientY - offset_y)
-                    ctx.lineTo(e.clientX - offset_x , e.clientY - offset_y);
+                    arrX.push(e.clientX - cameraOffset.x)
+                    arrY.push(e.clientY - cameraOffset.y)
+                    ctx.lineTo(e.clientX - cameraOffset.x , e.clientY - cameraOffset.y);
                     ctx.lineCap = "round";
                     ctx.stroke();
                     
@@ -429,29 +491,46 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         current_shape = existingShapes[currentShapeIndex]
                         console.log(currentShapeIndex)
                         console.log(current_shape)
-                        if(current_shape.type == "rect"){ 
+                        if(current_shape.type == "rect" ){ 
                             current_shape.x += dx ; 
                             current_shape.y += dy;
                          
-                         clearCanvas(existingShapes , canvas , ctx)
-
+                        //  clearCanvas(existingShapes , canvas , ctx)
+                        Redraw()
                          startX = mouseX 
                          startY = mouseY
                         //  ctx.strokeStyle = "rgba(255 ,255, 255)"
                         //  ctx.strokeRect(current_shape.x , current_shape.y, current_shape.width , current_shape.height);
                         } 
+                        else if (current_shape.type == "circle"){ 
+                            current_shape.centerX +=dx ; 
+                            current_shape.centerY +=dy;
+                            Redraw()
+                            startX = mouseX ; 
+                            startY = mouseY
+                        }
+                        else if (current_shape.type == "pencil"){ 
+                            for(let i = 0 ; i < current_shape.X.length ; i++){ 
+                                current_shape.X[i] += dx;
+                                current_shape.Y[i] += dy;
+                            }
+                            Redraw();
+                            startX = mouseX; 
+                            startY = mouseY;
+                        }
+                        
                     }
                 }
                 else if(shapeRef.current == "pan"){ 
-
-                    const mousePos = getEventLocation(e);
-                if (mousePos) {
-                    cameraOffset.x += (mousePos.x - startX) / cameraZoom;
-                    cameraOffset.y += (mousePos.y - startY) / cameraZoom;
-                    startX = mousePos.x;
-                    startY = mousePos.y;
+                    // const mousePos = getEventLocation(e);
+                // if (mousePos) {
+                    cameraOffset.x = getEventLocation(e).x/cameraZoom - dragStart.x
+                    cameraOffset.y = getEventLocation(e).y/cameraZoom - dragStart.y;
+                    // startX = mousePos.x;
+                    // startY = mousePos.y;
                    Redraw()
-                }
+                //    clearCanvas(existingShapes , canvas , ctx)
+                // }
                     // Redraw()
                 }
                 // else if(shapeRef.current == "pencil"){ }
@@ -536,10 +615,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 }
 
 function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx : CanvasRenderingContext2D ){  
+    // canvas.width = window.innerWidth
+    // canvas.height = window.innerHeight
     //   ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     // ctx.clearRect(0,0,window.innerWidth , window.innerHeight) no my co
-      ctx.fillStyle = "rgba(0,0,0)"
+    //   ctx.fillStyle = "rgba(0,0,0)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
       existingShapes.map((shape)=> { 
             if(shape.type === "rect") { 
