@@ -4,6 +4,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { json } from "stream/consumers";
+import { Shantell_Sans } from "next/font/google";
 // import { Cambay, Caveat, Flow_Circular } from "next/font/google";
 // import { SocketAddress } from "net";
 // import { cookies } from "next/headers";
@@ -171,6 +172,24 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 
             }
         }
+        if(message.type == "deleteMany"){ 
+            const parseShape = message.message ; 
+            console.log("parseShape length : " + parseShape.length)
+            for(let j = 0  ; j < parseShape.length ; j++){ 
+                for(let i = 0 ; i < existingShapes.length ; i++) { 
+                    if(parseShape[j].DBid == existingShapes[i].DBid){ 
+                        existingShapes.splice(i , 1)
+                        // existingShapes[i] = parseShape;
+                        console.log("deleted the exisitng shape")
+                        console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                        clearCanvas(existingShapes , canvas , ctx )
+                        // Redraw()
+                    }
+                    
+                }
+            }
+            
+        }
        
     }
 
@@ -184,6 +203,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let currentShapeIndex :number = 0 
         let databaseId :number ;
         let current_shape :any  ={}
+        let erased_Shapes :any[] = []
         
 
         function getEventLocation(e:any)
@@ -234,6 +254,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         return true
                     }
                  }
+            }
+            else{ 
+                return false;
             }
             
             return false
@@ -296,6 +319,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 dragStart.x = getEventLocation(e).x/cameraZoom - cameraOffset.x; 
                 dragStart.y = getEventLocation(e).y/cameraZoom -cameraOffset.y
                 // cancelRedraw = false ; 
+            }
+            if(shapeRef.current == "eraseDrag"){ 
+
             }
             // if(shapeRef.current == "erase"){
             //     e.preventDefault()
@@ -457,6 +483,24 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 console.log("after : " + JSON.stringify({existingShapes}))
             }
         }
+        else if(shapeRef.current == "eraseDrag"){ 
+            console.log("shapes to erase " + JSON.stringify(erased_Shapes))
+            console.log("mouse up tk pochgye hai ")
+            // let sendhogye = false;
+             socket.send(JSON.stringify({
+                    type :"deleteMany", 
+                    message : erased_Shapes, 
+                    roomId
+            }))
+                
+            // }
+            
+            // if(sendhogye){
+                console.log("websocket ya backend tk request pochgyi aur proceed bhi hogyi")
+                erased_Shapes  = []
+            // }
+            
+        }
 
         else if (shapeRef.current == "pan") { 
             lastZoom = cameraZoom
@@ -468,7 +512,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         
         
-        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase") {
+        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag") {
             
             console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
@@ -584,6 +628,46 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 //    clearCanvas(existingShapes , canvas , ctx)
                 // }
                     // Redraw()
+                }
+                else if(shapeRef.current == "eraseDrag"){ 
+                    let  mouseX = e.clientX -cameraOffset.x; 
+                    let  mouseY = e.clientY -cameraOffset.y;
+                    console.log(mouseX , mouseY)
+                    for ( let shape of existingShapes) { 
+                        console.log("reached inside to find shape")
+                        if(is_mouse_in_shape(mouseX , mouseY , shape)){ 
+                            console.log("checked the shape ")
+                            if(erased_Shapes.length==0){ 
+                                console.log("the length of errased shapes is 0 so direct push")
+                                erased_Shapes.push(shape)
+                            }
+                            else {
+                                let hehe = false;
+                                for(let i = 0 ; i < erased_Shapes.length ; i++){ 
+                                    console.log("checking if the shape doesnt already presesnt in the erased array")
+                                    console.log("that fake bitch"+JSON.stringify( erased_Shapes[i]))
+                                    console.log("that fake bitch db id " + erased_Shapes[i].DBid)
+                                    console.log("current shape db id" + shape.DBid)
+                                    if(shape.DBid != erased_Shapes[i].DBid){
+                                        console.log("hehe true krdia")
+                                        hehe = true ;
+                                        // return;
+                                    }  
+                                    else{ 
+                                        console.log("hehe false krdia")
+                                        // // return
+                                        hehe = false;
+                                        return;
+                                    }                              
+                                }
+                                if(hehe){ 
+                                    console.log("pushed the shape")
+                                    erased_Shapes.push(shape)
+                                }
+                            }
+                        }
+                    }
+                    console.log(erased_Shapes)
                 }
                 // else if(shapeRef.current == "pencil"){ }
                 // ctx.ellipse(startX , startY , width , height , Math.PI / 4, 0, 2 * Math.PI)

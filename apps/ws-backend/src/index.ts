@@ -138,6 +138,33 @@ wss.on('connection', function connection(ws, request) {
         console.log("bad errror"+ e)
       }
     }
+    if(parseData.type == "deleteMany"){ 
+      
+      try {
+      console.log("hello from websocket")
+      const message = parseData.message;
+      const roomId = parseData.roomId; 
+      let result = message.map( (a : any) => a.DBid)
+      await prismaClient.chat.deleteMany({
+        where : { 
+          id : { 
+            in : result
+          }
+        }
+      })
+      users.forEach(user => { 
+        if(user.rooms.includes(roomId)){ 
+          user.ws.send(JSON.stringify({
+            type : "deleteMany", 
+            message : message , 
+            roomId ,
+          }))
+        }
+      })
+    } catch(e){ 
+      console.log("ooffo sabzi error hogis"  + e)
+    }
+    }
 
 
 
