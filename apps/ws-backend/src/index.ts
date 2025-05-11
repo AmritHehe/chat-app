@@ -114,6 +114,30 @@ wss.on('connection', function connection(ws, request) {
           }
         })
       }
+      if(parseData.type == "delete"){ 
+        try {
+        const message = parseData.message; 
+        const roomId = parseData.roomId ; 
+
+        // const id = message.DBid
+        await prismaClient.chat.delete({ 
+          where : { 
+            id : message.DBid
+          }
+        })
+        users.forEach(user => { 
+          if(user.rooms.includes(roomId)){ 
+            user.ws.send(JSON.stringify({
+              type : "delete", 
+              message : message , 
+              roomId ,
+            }))
+          }
+        })
+      }catch(e){ 
+        console.log("bad errror"+ e)
+      }
+    }
 
 
 

@@ -7,7 +7,7 @@ export default function Canvas ({roomId , socket} : {
     roomId : string , 
     socket : WebSocket
 } ){ 
-    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | "pan" |string
+    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | "pan" | "erase" | string
 
     const canvasRef = useRef<HTMLCanvasElement>(null); 
     const [currShape , setShape] = useState<Shapee>("");
@@ -26,7 +26,7 @@ export default function Canvas ({roomId , socket} : {
     return <>
     <div className="flex items-center justify-center">
         <div className="static w-screen h-screen">
-        <canvas id="canvas"  ref={canvasRef} > </canvas> 
+        <canvas id="canvas" className={currShape == "pan" ? `cursor-grab active:cursor-grabbing` : currShape =="drag" ? `cursor-move` : `cursor-default`  }  ref={canvasRef} > </canvas> 
         </div>
         <div className="absolute bottom-0 right-0 m-3 rounded bg-green-600">
             <button onClick={()=> {setShape("line")}} className="bg-white p-4 m-2 rounded-lg">
@@ -50,9 +50,13 @@ export default function Canvas ({roomId , socket} : {
             <button onClick={()=> {setShape("drag")}} className="bg-white p-4 m-2 rounded-lg">
                 Drag
             </button>
-            <button onClick={()=> {setShape("pan")}} className="bg-white p-4 m-2 rounded-lg">
+            <button onClick={()=> {setShape("pan")}}  className="bg-white p-4 m-2 rounded-lg active:cursor-grab ">
                 Pan
             </button>
+            <button onClick={()=> {setShape("erase")}} className="bg-white p-4 m-2 rounded-lg">
+                Erase
+            </button>
+            
         </div>
      </div>
     </> 

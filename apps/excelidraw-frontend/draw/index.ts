@@ -149,17 +149,30 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                 clearCanvas(existingShapes , canvas , ctx )
                 // Redraw()
-                return;
             }
             else { 
                 console.log("cant find the exisiting shape! oh oh")
             }
-           }
-            
-            
+           }         
         }
+        if(message.type == "delete"){ 
+            const parseShape = message.message;
+            
+            for(let i = 0 ; i < existingShapes.length ; i++) { 
+                if(parseShape.DBid == existingShapes[i].DBid){ 
+                    existingShapes.splice(i , 1)
+                    // existingShapes[i] = parseShape;
+                    console.log("deleted the exisitng shape")
+                    console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                    clearCanvas(existingShapes , canvas , ctx )
+                    // Redraw()
+                    return;
+                }
+                
+            }
+        }
+       
     }
-    
 
         
 
@@ -170,25 +183,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let Drag = false; 
         let currentShapeIndex :number = 0 
         let databaseId :number ;
-        let current_shape :any  ={ 
-
-        }
+        let current_shape :any  ={}
         
 
-
-        if(shapeRef.current == "circle") { 
-
-
-        }
-        if(shapeRef.current == "line"){ 
-
-        }
-        if(shapeRef.current == "square"){ 
-
-        }
-        if(shapeRef.current == "arrow"){ 
-            
-        }
         function getEventLocation(e:any)
             {
                 return { x: e.clientX -offset_x , y: e.clientY - offset_y }        
@@ -242,6 +239,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             return false
         }
         canvas.addEventListener("mousedown" , (e) =>{
+                if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"){
+                canvas.style.cursor = 'crosshair'
+                }
             
             console.log(cameraOffset)
             cancelRedraw = true ; 
@@ -261,7 +261,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 ctx.moveTo(startX ,startY)
             }
             let index = 0
-            if(shapeRef.current == "drag"){     
+            if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
             e.preventDefault()  
             for(let shape of existingShapes){  
                 if(shape.type == "rect" || shape.type == "circle" || shape.type == "pencil"){
@@ -297,6 +297,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 dragStart.y = getEventLocation(e).y/cameraZoom -cameraOffset.y
                 // cancelRedraw = false ; 
             }
+            // if(shapeRef.current == "erase"){
+            //     e.preventDefault()
+
+            // }
             else{ 
                 return;
             }
@@ -304,6 +308,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             
         })
         canvas.addEventListener("mouseup" , (e)=> { 
+        if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"){
+                canvas.style.cursor = 'default'
+        }
+        
         clicked = false ;
         cancelRedraw = false ; 
 
@@ -405,6 +413,50 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             console.log("after : " + JSON.stringify({existingShapes}))
             
         }
+        else if (shapeRef.current == "erase"){ 
+            for(let i = 0 ; i < existingShapes.length ; i++){ 
+                if (currentShapeIndex == i){ 
+                    current_shape = existingShapes[i]; 
+                    console.log("foundeddd the shape here it is : " + current_shape)
+                }
+                if(current_shape.type == "rect") { 
+                    shape = { 
+                        type : "rect" , 
+                        x: current_shape.x,
+                        y: current_shape.y , 
+                        width :current_shape.width, 
+                        height : current_shape.height,
+                        DBid : current_shape.DBid
+    
+                    }
+                }
+                else if(current_shape.type == "circle"){ 
+                    shape = { 
+                        type  : "circle", 
+                        radius :  current_shape.radius , 
+                        centerX : current_shape.centerX , 
+                        centerY : current_shape.centerY ,
+                        DBid : current_shape.DBid
+                    }
+                }
+                else if (current_shape.type == "pencil"){ 
+                    shape = { 
+                        type : "pencil" , 
+                        X : current_shape.X , 
+                        Y : current_shape.Y ,
+                        DBid : current_shape.DBid
+                    }
+                }
+                console.log("current shape db ID "+current_shape.DBid)
+                socket.send(JSON.stringify({
+                    type : "delete",
+                    //@ts-ignore
+                    message : shape,
+                    roomId
+                }))
+                console.log("after : " + JSON.stringify({existingShapes}))
+            }
+        }
 
         else if (shapeRef.current == "pan") { 
             lastZoom = cameraZoom
@@ -416,7 +468,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         
         
-        if(shapeRef.current != "drag" && shapeRef.current!= "pan"){
+        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase") {
             
             console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
@@ -650,6 +702,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
             }
         
       )
+    
 }
 
 async function getExistingShapes(roomId : string ) { 
