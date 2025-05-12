@@ -117,6 +117,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
 
     let existingShapes: Shape[] = await getExistingShapes(roomId)
+    console.log("shru hote hi exisiting shapes ye agy hai dostonn"+JSON.stringify(existingShapes))
     let  arrX : any = [];
     let  arrY: any = [];    
     if(!ctx){ 
@@ -136,6 +137,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             const mainShape = parseShape.shape 
             mainShape.DBid  = id
             existingShapes.push(mainShape)
+            // existingShapes.push(parseShape.shape)
             console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
             clearCanvas(existingShapes , canvas , ctx )
             // Redraw()
@@ -265,13 +267,28 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"){
                 canvas.style.cursor = 'crosshair'
                 }
-            
-            console.log(cameraOffset)
+           
+                         
+                startX = (e.clientX - window.innerWidth / 2) / cameraZoom + window.innerWidth/2 - cameraOffset.x
+                startY =  (e.clientY - window.innerHeight/ 2) / cameraZoom + window.innerHeight/2 - cameraOffset.y
+            // Redraw();
+            // console.log(cameraOffset)
             cancelRedraw = true ; 
             console.log(shapeRef.current)
             clicked = true
-            startX = e.clientX- cameraOffset.x;
-            startY = e.clientY- cameraOffset.y ;
+            // console.log( "get bounding client rect " + JSON.stringify(rect))
+            console.log("camera zoom when mouseeDown" + cameraZoom)
+            console.log("console values " + e.clientX)
+            console.log("console Y " + e.clientY)
+            // console.log ("After dividing with camera zoom X " + startX)
+            // console.log ("After dividing with camera zoom Y " + startY)
+            // startX = (e.clientX/cameraZoom) - (cameraOffset.x/cameraZoom);
+            // startY =( e.clientY/cameraZoom)- (cameraOffset.y/cameraZoom) ;
+            // startX = e.clientX  - cameraOffset.x ;
+            // startY = e.clientY  - cameraOffset.y ;
+            // startX =  getEventLocation(e).x/cameraZoom - cameraOffset.x;
+            // startY = getEventLocation(e).y/cameraZoom - cameraOffset.y;
+            console.log("startX " + startX + "staart Y" + startY)
             
             
             arrX.length = 0; 
@@ -340,9 +357,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         
         clicked = false ;
         cancelRedraw = false ; 
-
-        const width = e.clientX   - startX - cameraOffset.x; 
-        const height = e.clientY  -startY - cameraOffset.y ; 
+        const mouseX =(e.clientX - window.innerWidth/2)/cameraZoom ;  
+        const mouseY = (e.clientY - window.innerHeight/2)/cameraZoom ;
+        const width = mouseX - startX + window.innerWidth/2 - cameraOffset.x; 
+        const height = mouseY - startY + window.innerHeight/2 - cameraOffset.y;  ; 
+        // const width = e.clientX   - startX - cameraOffset.x; 
+        // const height = e.clientY  -startY - cameraOffset.y ; 
 
         let shape :Shape | null = null;
         if(shapeRef.current == "rect"){
@@ -487,11 +507,13 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             console.log("shapes to erase " + JSON.stringify(erased_Shapes))
             console.log("mouse up tk pochgye hai ")
             // let sendhogye = false;
-             socket.send(JSON.stringify({
+            if(erased_Shapes.length > 0){
+                socket.send(JSON.stringify({
                     type :"deleteMany", 
                     message : erased_Shapes, 
                     roomId
-            }))
+                }))
+            }
                 
             // }
             
@@ -525,14 +547,17 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             arrX.length = 0; 
             arrY.length = 0;
         }
+        // Redraw()
             // console.log(e.clientX)
             // console.log(e.clientY)
         })
         canvas.addEventListener("mousemove" , (e) => { 
             if(clicked) { 
                 // console.log("inside the function")
-                const width = e.clientX - startX - cameraOffset.x; 
-                const height = e.clientY - startY - cameraOffset.y ;  
+                const mouseX =(e.clientX - window.innerWidth/2)/cameraZoom ;  
+                const mouseY = (e.clientY - window.innerHeight/2)/cameraZoom ;
+                const width = mouseX - startX + window.innerWidth/2 - cameraOffset.x; 
+                const height = mouseY - startY + window.innerHeight/2 - cameraOffset.y;  
                 
                 if(shapeRef.current == "rect"){
                     // console.log("inside the rect function")
@@ -684,12 +709,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 if(zoomAmount){ 
                     cameraZoom += zoomAmount
                 }
-               
                 cameraZoom = Math.min(cameraZoom , MAX_ZOOM)
                 cameraZoom = Math.max(cameraZoom , MIN_ZOOM)
                 Redraw()
 
-                // console.log(zoomAmount)
+                // console.log(cameraZoom)
             }
         }
         canvas.addEventListener('wheel', (e) => adjustZoom(e.deltaY*SCROLL_SENSITIVITY))
@@ -756,7 +780,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
     //   ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     // ctx.clearRect(0,0,window.innerWidth , window.innerHeight) no my co
-    //   ctx.fillStyle = "rgba(0,0,0)"
+    //  ctx.fillStyle = "rgba(17,17,17)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
       existingShapes.map((shape)=> { 
             if(shape.type === "rect") { 
@@ -792,10 +816,31 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
 async function getExistingShapes(roomId : string ) { 
     const res = await  axios.get(`${HTTP_BACKEND}/chats/${roomId}`); 
     const messages = res.data.messages; 
+    console.log("hello from get exisiting sapes"); 
+    console.log("message reciive : "  + JSON.stringify(messages))
+
+    // const parseShape = JSON.parse(message.message)
+    //         const id:number = JSON.parse(message.id)
+    //         const mainShape = parseShape.shape 
+    //         mainShape.DBid  = id
+    //         existingShapes.push(mainShape)
+    //         console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
     
-    const shapes = messages.map((x : {message : string})=> { 
+    const shapes = messages.map((x : {message : string , id :string})=> { 
         const messageData = JSON.parse(x.message)
-        return messageData.shape;
+        const messageDataAll = JSON.parse(x.id)
+        // console.log("hello from map function"); 
+        // console.log("i got this here" + JSON.stringify(messageDataAll))
+        const id  =  messageDataAll;
+        const shape = messageData.shape
+        shape.DBid = id ; 
+        
+        // return messageData.shape;
+        console.log(" shape jo aaraha hai " + JSON.stringify(shape))
+        return shape; 
+
     })
+    // console.log(shapes)
     return shapes;
 }
+
