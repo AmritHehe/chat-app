@@ -277,9 +277,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             console.log(shapeRef.current)
             clicked = true
             // console.log( "get bounding client rect " + JSON.stringify(rect))
-            console.log("camera zoom when mouseeDown" + cameraZoom)
-            console.log("console values " + e.clientX)
-            console.log("console Y " + e.clientY)
+            // console.log("camera zoom when mouseeDown" + cameraZoom)
+            // console.log("console values " + e.clientX)
+            // console.log("console Y " + e.clientY)
             // console.log ("After dividing with camera zoom X " + startX)
             // console.log ("After dividing with camera zoom Y " + startY)
             // startX = (e.clientX/cameraZoom) - (cameraOffset.x/cameraZoom);
@@ -293,8 +293,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             
             arrX.length = 0; 
             arrY.length = 0;
-            console.log(arrX); 
-            console.log(arrY)
+            // console.log(arrX); 
+            // console.log(arrY)
             console.log("before " + JSON.stringify({existingShapes}));
             if(shapeRef.current == "pencil"){ 
                 // ctx.beginPath()
@@ -303,6 +303,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             let index = 0
             if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
             e.preventDefault()  
+            // canvas.style.cursor = "drag"
             for(let shape of existingShapes){  
                 if(shape.type == "rect" || shape.type == "circle" || shape.type == "pencil"){
                     if(is_mouse_in_shape(startX , startY ,shape)){
@@ -378,8 +379,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         else if(shapeRef.current == "circle"){ 
             const radius = Math.sqrt(width * width + height * height) / 2;
-            const centerX = (startX + (e.clientX - cameraOffset.x) )/ 2;
-            const centerY = (startY + (e.clientY - cameraOffset.y )) / 2;
+            const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
+            const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
             
 
  
@@ -404,6 +405,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // Redraw()
         }
         else if (shapeRef.current == "drag"){ 
+            // canvas.style.cursor = "default"
             if(!Drag){ 
                 return ;
             }
@@ -574,8 +576,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     // clearCanvas(existingShapes , canvas , ctx )
                     Redraw()
                     const radius = Math.sqrt(width * width + height * height) / 2;
-                    const centerX = (startX + (e.clientX - cameraOffset.x)) / 2;
-                    const centerY = (startY + (e.clientY - cameraOffset.y)) / 2;
+                    const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
+                    const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
 
                     ctx.beginPath();
                     ctx.arc(centerX , centerY , Math.abs(radius) , 0 , Math.PI * 2) 
@@ -587,9 +589,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     console.log("ArrayX" + arrX)
                     ctx.lineWidth = 1;
                     ctx.lineCap = 'round';
-                    arrX.push(e.clientX - cameraOffset.x)
-                    arrY.push(e.clientY - cameraOffset.y)
-                    ctx.lineTo(e.clientX - cameraOffset.x , e.clientY - cameraOffset.y);
+                    arrX.push(mouseX + window.innerWidth/2 - cameraOffset.x)
+                    arrY.push(mouseY + window.innerHeight/2 - cameraOffset.y)
+                    ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
                     ctx.lineCap = "round";
                     ctx.stroke();
                     
@@ -601,8 +603,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     }
                     if(Drag){
                         e.preventDefault()
-                        let  mouseX = e.clientX -cameraOffset.x; 
-                        let  mouseY = e.clientY -cameraOffset.y;
+                        let currentX = (e.clientX - window.innerWidth/2)/cameraZoom
+                        let currentY = (e.clientY - window.innerHeight/2)/cameraZoom
+                        let  mouseX = currentX+window.innerWidth/2 -cameraOffset.x; 
+                        let  mouseY = currentY+window.innerHeight/2 -cameraOffset.y;
                         
                         let dx = mouseX - startX ; 
                         let dy = mouseY - startY ; 
@@ -655,8 +659,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     // Redraw()
                 }
                 else if(shapeRef.current == "eraseDrag"){ 
-                    let  mouseX = e.clientX -cameraOffset.x; 
-                    let  mouseY = e.clientY -cameraOffset.y;
+                    let currentX =  (e.clientX - window.innerWidth/2)/cameraZoom; 
+                    let currentY = (e.clientY - window.innerHeight/2)/cameraZoom;
+
+                    let  mouseX = currentX + window.innerWidth/2 -cameraOffset.x; 
+                    let  mouseY = currentY + window.innerHeight/2 -cameraOffset.y;
                     console.log(mouseX , mouseY)
                     for ( let shape of existingShapes) { 
                         console.log("reached inside to find shape")
