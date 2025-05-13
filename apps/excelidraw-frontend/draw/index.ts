@@ -184,8 +184,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         // existingShapes[i] = parseShape;
                         console.log("deleted the exisitng shape")
                         console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
-                        clearCanvas(existingShapes , canvas , ctx )
-                        // Redraw()
+                        // clearCanvas(existingShapes , canvas , ctx )
+                        Redraw()
                     }
                     
                 }
@@ -198,6 +198,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         
 
         clearCanvas(existingShapes , canvas , ctx )
+        ctx.strokeStyle = "rgba(255 ,255, 255)"
         let clicked = false ; 
         let startX = 0; 
         let startY = 0;
@@ -217,12 +218,38 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         function is_mouse_in_shape(x:number , y :number , shape :any){ 
             console.log("inside rect")
             if(shape.type == "rect"){ 
-                let shape_Left = shape.x; 
-                let shape_Right = shape.x + shape.width;
-                let shape_top = shape.y;
-                let shape_bottom = shape.y + shape.height;
+                let shape_Left ;
+                let shape_Right ; 
+                let shape_Top ; 
+                let shape_Bottom ;
+                if(shape.height >0 && shape.width>0){
+                    shape_Left = shape.x; 
+                    shape_Right = shape.x + shape.width;
+                    shape_Top = shape.y;
+                    shape_Bottom = shape.y + shape.height;
+                }
+                else if(shape.height > 0  && shape.width <=0){ 
+                    shape_Left = shape.x + shape.width ; 
+                    shape_Right = shape.x ; 
+                    shape_Top = shape.y ;
+                    shape_Bottom = shape.y + shape.height;
+                    
+                }
+                else if(shape.height < 0 && shape.width >=0){ 
+                    shape_Left = shape.x;
+                    shape_Right = shape.x + shape.width ;
+                    shape_Top = shape.y + shape.height ;
+                    shape_Bottom = shape.y ; 
+                    
+                }
+                else if(shape.height < 0 && shape.width < 0){ 
+                    shape_Left = shape.x + shape.width ; 
+                    shape_Right = shape.x ; 
+                    shape_Top = shape.y + shape.height ; 
+                    shape_Bottom = shape.y;
+                }
 
-                if(x > shape_Left && x < shape_Right && y > shape_top && y < shape_bottom){ 
+                if(x > shape_Left && x < shape_Right && y > shape_Top && y < shape_Bottom){ 
                     return true
                  }
             }
@@ -298,6 +325,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             console.log("before " + JSON.stringify({existingShapes}));
             if(shapeRef.current == "pencil"){ 
                 // ctx.beginPath()
+                arrX = [startX] 
+                arrY = [startY];
                 ctx.moveTo(startX ,startY)
             }
             let index = 0
@@ -360,11 +389,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         cancelRedraw = false ; 
         const mouseX =(e.clientX - window.innerWidth/2)/cameraZoom ;  
         const mouseY = (e.clientY - window.innerHeight/2)/cameraZoom ;
-        const width = mouseX - startX + window.innerWidth/2 - cameraOffset.x; 
-        const height = mouseY - startY + window.innerHeight/2 - cameraOffset.y;  ; 
+        let width = mouseX - startX + window.innerWidth/2 - cameraOffset.x; 
+        let height = mouseY - startY + window.innerHeight/2 - cameraOffset.y;  ; 
         // const width = e.clientX   - startX - cameraOffset.x; 
         // const height = e.clientY  -startY - cameraOffset.y ; 
-
         let shape :Shape | null = null;
         if(shapeRef.current == "rect"){
            
@@ -396,11 +424,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             
             ctx.stroke();
             ctx.beginPath();
+            const heheX = arrX ; 
+            const heheY = arrY ;
+            // ctx.closePath();
 
             shape = { 
                 type : "pencil" , 
-                X : arrX , 
-                Y : arrY
+                X : heheX , 
+                Y : heheY
             }
             // Redraw()
         }
@@ -459,7 +490,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 roomId
             }))
             console.log("after : " + JSON.stringify({existingShapes}))
-            
+            Redraw()
         }
         else if (shapeRef.current == "erase"){ 
             for(let i = 0 ; i < existingShapes.length ; i++){ 
@@ -516,7 +547,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     roomId
                 }))
             }
-                
+            clearCanvas(existingShapes , canvas , ctx)
             // }
             
             // if(sendhogye){
@@ -546,8 +577,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }),
                 roomId
             }))
-            arrX.length = 0; 
-            arrY.length = 0;
+            // clearCanvas(existingShapes , canvas , ctx)
+            // Redraw()
+            // arrX.length = 0; 
+            // arrY.length = 0;
         }
         // Redraw()
             // console.log(e.clientX)
@@ -787,12 +820,14 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
     //   ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     // ctx.clearRect(0,0,window.innerWidth , window.innerHeight) no my co
-    //  ctx.fillStyle = "rgba(17,17,17)"
+     ctx.fillStyle = "rgba(17,17,17)"
       ctx.fillRect(0,0, canvas.width , canvas.height) 
       existingShapes.map((shape)=> { 
             if(shape.type === "rect") { 
+                ctx.beginPath();
                 ctx.strokeStyle = "rgba(255 ,255, 255)"
                 ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
+                ctx.closePath();
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
                     ctx.arc(shape.centerX , shape.centerY , Math.abs(shape.radius) , 0 , Math.PI * 2) 
