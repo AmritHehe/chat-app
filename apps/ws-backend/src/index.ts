@@ -165,6 +165,20 @@ wss.on('connection', function connection(ws, request) {
       console.log("ooffo sabzi error hogis"  + e)
     }
     }
+    if(parseData.type == "liveDraw"){ 
+      // console.log("hello from websocket livedraw here")
+      const message = parseData.message ; 
+      const roomId = parseData.roomId ; 
+      users.forEach(user => { 
+        if(user.rooms.includes(roomId)){
+          user.ws.send(JSON.stringify({
+            type :  "liveDraw",
+            message : message , 
+            roomId 
+          }))
+        }
+      })
+    }
 
 
 
