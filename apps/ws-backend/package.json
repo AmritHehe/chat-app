@@ -10,15 +10,16 @@
     "dev": "tsc -b && node ./dist/index.js"
   },
   "dependencies": {
+    "@repo/db": "workspace:*",
     "@types/jsonwebtoken": "^9.0.9",
     "jsonwebtoken": "^9.0.2",
-    "ws": "^8.18.1", 
-    "@repo/db" : "workspace:*"
+    "ws": "^8.18.1",
+    "ws-backend": "link:"
   },
   "devDependencies": {
+    "@repo/backend-common": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/ws": "^8.18.1",
-    "@repo/backend-common" : "workspace:*"
+    "@types/ws": "^8.18.1"
   },
   "keywords": [],
   "author": "",

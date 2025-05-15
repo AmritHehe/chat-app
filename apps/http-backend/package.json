@@ -16,7 +16,9 @@
     "@types/jsonwebtoken": "^9.0.9",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "http-backend": "link:",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.6.0"
   },
   "devDependencies": {
     "@repo/backend-common": "workspace:*",

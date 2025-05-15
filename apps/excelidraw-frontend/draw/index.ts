@@ -3,10 +3,14 @@ import { HTTP_BACKEND } from "@/config"
 // import { eventNames } from "process";
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
-import { json } from "stream/consumers";
-import { Shantell_Sans } from "next/font/google";
-import { parse } from "path";
-import { stringify } from "querystring";
+import { recordTraceEvents } from "next/dist/trace";
+import { platform } from "os";
+import { difference } from "next/dist/build/utils";
+import { Sue_Ellen_Francisco } from "next/font/google";
+// import { json } from "stream/consumers";
+// import { Shantell_Sans } from "next/font/google";
+// import { parse } from "path";
+// import { stringify } from "querystring";
 // import { Cambay, Caveat, Flow_Circular } from "next/font/google";
 // import { SocketAddress } from "net";
 // import { cookies } from "next/headers";
@@ -136,7 +140,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         // clearCanvas(existingShapes , canvas , ctx )
         if(message.type == "chat"){ 
             const parseShape = JSON.parse(message.message)
-            // console.log("parseshape chat thingy got rfjngdf" + JSON.stringify(parseShape))
+            console.log("parseshape chat thingy got rfjngdf" + JSON.stringify(parseShape))
             const id:number = JSON.parse(message.id)
             const mainShape = parseShape.shape 
             mainShape.DBid  = id
@@ -234,6 +238,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let databaseId :number ;
         let current_shape :any  ={}
         let erased_Shapes :any[] = []
+        let selected_shape :any = {}
+        let selectedShapeIndex = 0 ;
+        let whatToResize : any ;
         
 
         function getEventLocation(e:any)
@@ -317,7 +324,348 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             
             return false
         }
+        function is_mouse_in_border(x:number , y:number , shape:any){
+            let shape_Top ; 
+            let shape_Bottom ; 
+            let shape_Left ; 
+            let shape_Right
+            if(shape.type == "rect"){ 
+                if(shape.width <=0 && shape.height <=0){ 
+                    shape_Top = shape.y + shape.height ; 
+                    shape_Bottom = shape.y; 
+                    shape_Left = shape.x + shape.width; 
+                    shape_Right = shape.x;
+                }
+                if(shape.width > 0 && shape.height <=0){ 
+                    shape_Top = shape.y + shape.height ; 
+                    shape_Bottom = shape.y ; 
+                    shape_Left = shape.x ; 
+                    shape_Right = shape.x + shape.width ; 
+                }
+                if(shape.width <=0 && shape.height > 0){ 
+                    shape_Top = shape.y ; 
+                    shape_Bottom = shape.y + shape.height ; 
+                    shape_Left = shape.x + shape.width ; 
+                    shape_Right = shape.x; 
+                }
+                if(shape.width > 0 && shape.height > 0){ 
+                    shape_Top = shape.y ; 
+                    shape_Bottom = shape.y + shape.height ; 
+                    shape_Left = shape.x ; 
+                    shape_Right = shape.x + shape.width ; 
+                }
+            }
+            let oldX = x ; 
+            let oldY = y ;
+            //for left left line 
+            if(shape.height > 0 && shape.width < 0){
+                for(let i = 0 ; i < 13 ; ++i){ 
+                    // console.log("XXXXX: " + x , " YYYYYY " + y)
+                // if((x == shape_Left && y >  shape_Top && y < shape_Bottom )|| (x==shape_Right && y > shape_Top && y < shape_Bottom)||(y==shape_Top && x<shape_Left && x > shape_Right)||(y==shape_Bottom && x <shape_Left && x > shape_Right)){ 
+                    if((x == shape_Left && y >  shape_Top && y < shape_Bottom )){
+                        whatToResize = "left"
+                        return true
+                    }
+                    else if((x==shape_Right && y > shape_Top && y < shape_Bottom)){   
+                        whatToResize = "right"
+                        return true; 
+                    }
+                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "top"
+                        return true;
+                    }
+                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "bottom"
+                        return true;
+                    }
+                
+                    if(i==1){ 
+                        x+=1 ;
+                        y+=1 ; 
+                    }
+                    else if(i==2){ 
+                        x = oldX;
+                        y = oldY;
+                        x+=2;
+                        y+=2;
+                    }
+                    else if(i==3){ 
+                        x = oldX ; 
+                        y = oldY ; 
+                        x-=1; 
+                        y-=1; 
+                    }
+                    else if(i==4){ 
+                        x= oldX ; 
+                        y = oldY ; 
+                        x-=2; 
+                        y-=2;
+                    }
+                    else if(i==5){ 
+                        x = oldX ; 
+                        x+=1
+                    }
+                    else if(i==6){ 
+                        x = oldX; 
+                        x+=2;
+                    }
+                    else if(i==7){ 
+                        x = oldX ; 
+                        x-=1;
+                    }
+                    else if(i==8){ 
+                        x=oldX ; 
+                        x-=2;
+                    }
+                    else if(i==9){ 
+                        y = oldY ; 
+                        y+=1; 
+                    }
+                    else if(i==10){ 
+                        y=oldY ;
+                        y+=2
+                    }
+                    else if(i==11){ 
+                        y=oldY; 
+                        y-=1;
+                    }
+                    else if(i==12){ 
+                        y=oldY; 
+                        y-=2;
+                    }
+                }
+            }
+            else if(shape.width > 0 && shape.height > 0){ 
+                for(let i = 0 ; i < 13 ; ++i){ 
+                    if((x == shape_Left && y >  shape_Top && y < shape_Bottom )){
+                        whatToResize = "left"
+                        return true
+                    }
+                    else if((x==shape_Right && y > shape_Top && y < shape_Bottom)){   
+                        whatToResize = "right"
+                        return true; 
+                    }
+                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "top"
+                        return true;
+                    }
+                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "bottom"
+                        return true;
+                    }
+                
+                    if(i==1){ 
+                        x+=1 ;
+                        y+=1 ; 
+                    }
+                    else if(i==2){ 
+                        x = oldX;
+                        y = oldY;
+                        x+=2;
+                        y+=2;
+                    }
+                    else if(i==3){ 
+                        x = oldX ; 
+                        y = oldY ; 
+                        x-=1; 
+                        y-=1; 
+                    }
+                    else if(i==4){ 
+                        x= oldX ; 
+                        y = oldY ; 
+                        x-=2; 
+                        y-=2;
+                    }
+                    else if(i==5){ 
+                        x = oldX ; 
+                        x+=1
+                    }
+                    else if(i==6){ 
+                        x = oldX; 
+                        x+=2;
+                    }
+                    else if(i==7){ 
+                        x = oldX ; 
+                        x-=1;
+                    }
+                    else if(i==8){ 
+                        x=oldX ; 
+                        x-=2;
+                    }
+                    else if(i==9){ 
+                        y = oldY ; 
+                        y+=1; 
+                    }
+                    else if(i==10){ 
+                        y=oldY ;
+                        y+=2
+                    }
+                    else if(i==11){ 
+                        y=oldY; 
+                        y-=1;
+                    }
+                    else if(i==12){ 
+                        y=oldY; 
+                        y-=2;
+                    }
+                }
+            }
+            else if(shape.width > 0 && shape.height <=0){ 
+                for(let i = 0 ; i < 13 ; ++i){ 
+                    if((x == shape_Left && y >= shape_Top && y <= shape_Bottom )){
+                        whatToResize = "left"
+                        return true
+                    }
+                    else if((x==shape_Right && y >= shape_Top && y <= shape_Bottom)){   
+                        whatToResize = "right"
+                        return true; 
+                    }
+                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "top"
+                        return true;
+                    }
+                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "bottom"
+                        return true;
+                    }
+                
+                    if(i==1){ 
+                        x+=1 ;
+                        y+=1 ; 
+                    }
+                    else if(i==2){ 
+                        x = oldX;
+                        y = oldY;
+                        x+=2;
+                        y+=2;
+                    }
+                    else if(i==3){ 
+                        x = oldX ; 
+                        y = oldY ; 
+                        x-=1; 
+                        y-=1; 
+                    }
+                    else if(i==4){ 
+                        x= oldX ; 
+                        y = oldY ; 
+                        x-=2; 
+                        y-=2;
+                    }
+                    else if(i==5){ 
+                        x = oldX ; 
+                        x+=1
+                    }
+                    else if(i==6){ 
+                        x = oldX; 
+                        x+=2;
+                    }
+                    else if(i==7){ 
+                        x = oldX ; 
+                        x-=1;
+                    }
+                    else if(i==8){ 
+                        x=oldX ; 
+                        x-=2;
+                    }
+                    else if(i==9){ 
+                        y = oldY ; 
+                        y+=1; 
+                    }
+                    else if(i==10){ 
+                        y=oldY ;
+                        y+=2
+                    }
+                    else if(i==11){ 
+                        y=oldY; 
+                        y-=1;
+                    }
+                    else if(i==12){ 
+                        y=oldY; 
+                        y-=2;
+                    }
+                }
+            }
+            else if(shape.width < 0 && shape.height < 0){
+                for(let i = 0 ; i < 13 ; ++i){ 
+                    // console.log("XXXXX: " + x , " YYYYYY " + y)
+                // if((x == shape_Left && y >  shape_Top && y < shape_Bottom )|| (x==shape_Right && y > shape_Top && y < shape_Bottom)||(y==shape_Top && x<shape_Left && x > shape_Right)||(y==shape_Bottom && x <shape_Left && x > shape_Right)){ 
+                    if((x == shape_Left && y >=  shape_Top && y <= shape_Bottom )){
+                        whatToResize = "left"
+                        return true
+                    }
+                    else if((x==shape_Right && y >= shape_Top && y  <= shape_Bottom)){   
+                        whatToResize = "right"
+                        return true; 
+                    }
+                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "top"
+                        return true;
+                    }
+                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                        whatToResize = "bottom"
+                        return true;
+                    }
+                
+                    if(i==1){ 
+                        x+=1 ;
+                        y+=1 ; 
+                    }
+                    else if(i==2){ 
+                        x = oldX;
+                        y = oldY;
+                        x+=2;
+                        y+=2;
+                    }
+                    else if(i==3){ 
+                        x = oldX ; 
+                        y = oldY ; 
+                        x-=1; 
+                        y-=1; 
+                    }
+                    else if(i==4){ 
+                        x= oldX ; 
+                        y = oldY ; 
+                        x-=2; 
+                        y-=2;
+                    }
+                    else if(i==5){ 
+                        x = oldX ; 
+                        x+=1
+                    }
+                    else if(i==6){ 
+                        x = oldX; 
+                        x+=2;
+                    }
+                    else if(i==7){ 
+                        x = oldX ; 
+                        x-=1;
+                    }
+                    else if(i==8){ 
+                        x=oldX ; 
+                        x-=2;
+                    }
+                    else if(i==9){ 
+                        y = oldY ; 
+                        y+=1; 
+                    }
+                    else if(i==10){ 
+                        y=oldY ;
+                        y+=2
+                    }
+                    else if(i==11){ 
+                        y=oldY; 
+                        y-=1;
+                    }
+                    else if(i==12){ 
+                        y=oldY; 
+                        y-=2;
+                    }
+                }
+            }
+            return false ;
+        }
         canvas.addEventListener("mousedown" , (e) =>{
+            // selected_shape = {}
                 cancelLiveDraw = true ;
                 if(shapeRef.current=="rect")
                 { 
@@ -393,6 +741,26 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     continue;
                 }
             }
+            }
+
+            if(shapeRef.current == "select"){ 
+                console.log("hello from select")
+                e.preventDefault()
+                for(let i = 0 ; i <  existingShapes.length ; i++){ 
+                    let shape = existingShapes[i]
+                    if(shape.type == "rect"){ 
+                        if((is_mouse_in_border(startX , startY , shape))){
+                            console.log("yes mouse in border sir ! ") 
+                            selectedShapeIndex = i ; 
+                            selected_shape = shape;
+                            console.log("whatToResixe: "+ whatToResize)
+                            return ; 
+                        }
+                        else { 
+                            continue;
+                        }
+                    }
+                }
             }
             if(shapeRef.current == "pan"){ 
                 dragStart.x = getEventLocation(e).x/cameraZoom - cameraOffset.x; 
@@ -594,18 +962,44 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // }
             
         }
+        
 
         else if (shapeRef.current == "pan") { 
             lastZoom = cameraZoom
             // clearCanvas(existingShapes , canvas , ctx)
             Redraw()
         }
+        else if(shapeRef.current == "select"){ 
+            console.log("sellected shape "+  JSON.stringify(selected_shape))
+            if(selected_shape.type != "rect"){ 
+                return ;
+            }
+            let updated_shape = selected_shape
+            if(selected_shape.type == "rect"){ 
+                console.log("update request :" + JSON.stringify(selected_shape))
+                shape = { 
+                    type : "rect" , 
+                    x: updated_shape.x,
+                    y: updated_shape.y , 
+                    width :updated_shape.width, 
+                    height : updated_shape.height,
+                    DBid : updated_shape.DBid
+                }
+            selected_shape = {}
+            socket.send(JSON.stringify({
+                type : "update",
+                //@ts-ignore
+                message :  shape,
+                roomId
+            }))
+        }
+        }
         else { 
             return
         }
         
         
-        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag") {
+        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" ) {
             
             console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
@@ -748,6 +1142,105 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                     }
                 }
+                else if(shapeRef.current == "select"){
+                    // cancelRedraw= false;
+                    // console.log("hello from mouse move ")
+                    let width = selected_shape.width ; 
+                    let height = selected_shape.height ;
+                    let currentX = (e.clientX - window.innerWidth/2)/cameraZoom
+                    let currentY = (e.clientY - window.innerHeight/2)/cameraZoom
+                    let  mouseX = currentX+window.innerWidth/2 -cameraOffset.x; 
+                    let  mouseY = currentY+window.innerHeight/2 -cameraOffset.y;
+                    if(whatToResize == "left" ){ 
+                        console.log("hello from mousemove hehe")
+                        if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
+                            
+                        let difference  = selected_shape.x- mouseX
+                        selected_shape.x = mouseX
+                        selected_shape.width+=difference
+                        if(difference>=selected_shape.width){ 
+                            selected_shape-=difference
+                        }
+                        
+                        Redraw()
+                        startX = mouseX 
+                        startY = mouseY
+                        } 
+                        else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <= 0 && selected_shape.width <=0)){ 
+                            let difference = selected_shape.x + selected_shape.width -mouseX ; 
+                            // selected_shape.x = mouseX ; 
+                            selected_shape.width-=difference
+
+                            Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        }
+                        
+                    }
+                    else if(whatToResize == "right"){ 
+                        if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
+                            
+                        let difference  =  selected_shape.x+selected_shape.width - mouseX
+
+                        selected_shape.width-=difference
+                        
+                        Redraw()
+                        startX = mouseX 
+                        startY = mouseY
+                        } 
+                        else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
+                            let difference = selected_shape.x  -mouseX ; 
+                            selected_shape.x = mouseX ; 
+                            selected_shape.width+=difference
+
+                            Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        }
+                    }
+                    else if(whatToResize == "top"){ 
+                        if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height > 0 && selected_shape.width <= 0)){ 
+                            
+                            let difference  =  selected_shape.y - mouseY
+                            selected_shape.y = mouseY
+                            selected_shape.height+=difference
+                            
+                            Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        } 
+                        else if((selected_shape.height <=0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
+                            let difference = selected_shape.y + selected_shape.height - mouseY ; 
+                            selected_shape.height -= difference 
+
+                            Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        }
+                    }
+
+                    
+                    else if(whatToResize == "bottom"){ 
+                        if((selected_shape.height > 0 && selected_shape.width > 0) || (selected_shape.height > 0 && selected_shape.width <= 0)){ 
+                            let difference = selected_shape.y + selected_shape.height - mouseY ; 
+                            selected_shape.height -= difference;
+
+                             Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        }
+                        else if((selected_shape.height <=0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
+                            let difference = selected_shape.y - mouseY ; 
+                            selected_shape.y = mouseY ; 
+                            selected_shape.height += difference; 
+
+                            Redraw()
+                            startX = mouseX 
+                            startY = mouseY
+                        }
+                    }
+                    }
+                    
                 else if(shapeRef.current == "pan"){ 
                     // const mousePos = getEventLocation(e);
                 // if (mousePos) {
@@ -821,6 +1314,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 cameraZoom = Math.min(cameraZoom , MAX_ZOOM)
                 cameraZoom = Math.max(cameraZoom , MIN_ZOOM)
                 Redraw()
+                //@ts-ignore
                 fixZoomInLive(ctx, canvas , cameraZoom , cameraOffset)
 
                 // console.log(cameraZoom)
@@ -892,7 +1386,7 @@ function fixZoomInLive(ctx : CanvasRenderingContext2D , canvas : HTMLCanvasEleme
     ctx.scale(cameraZoom, cameraZoom)
     ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y )
 }
-function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTMLCanvasElement , exisitingShapes : any, cameraZoom , cameraOffset){
+function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTMLCanvasElement , exisitingShapes : any, cameraZoom : number, cameraOffset :any){
     // console.log("hello from the parsedShape")
     // console.log("here is the parseShape I am getting :" +JSON.stringify(parseShape.shape))
     // console.log("here is the context i am getting " +JSON.stringify(ctx) ) ; 

@@ -59,6 +59,10 @@ export default function Canvas ({roomId , socket} : {
             <button onClick={()=> {setShape("eraseDrag")}} className="bg-white p-4 m-2 rounded-lg">
                 EraseDrag
             </button>
+            <button onClick={()=> {setShape("select")}} className="bg-white p-4 m-2 rounded-lg">
+                Select
+            </button>
+            
             
         </div>
      </div>
