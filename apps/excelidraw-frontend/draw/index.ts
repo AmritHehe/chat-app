@@ -135,9 +135,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     
     
     
-
-
-    let existingShapes: Shape[] = await getExistingShapes(roomId)
+    let existingShapes : Shape[] = []; 
+    localStorage.setItem("existingShapes" , JSON.stringify(existingShapes))
+    existingShapes = await getExistingShapes(roomId)
     console.log("shru hote hi exisiting shapes ye agy hai dostonn"+JSON.stringify(existingShapes))
     let  arrX : any = [];
     let  arrY: any = [];    
@@ -159,6 +159,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             const mainShape = parseShape.shape 
             mainShape.DBid  = id
             existingShapes.push(mainShape)
+             localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
             // existingShapes.push(parseShape.shape)
             console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
             // clearCanvas(existingShapes , canvas , ctx )
@@ -172,8 +173,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 existingShapes[i] = parseShape;
                 console.log("updated the exisitng shape")
                 console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
                 clearCanvas(existingShapes , canvas , ctx ,cameraZoom)
                 // Redraw()
+                return;
             }
             else { 
                 console.log("cant find the exisiting shape! oh oh")
@@ -212,6 +215,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     
                 }
             }
+            localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
             
         }
         if(message.type == "liveDraw"){ 
@@ -781,14 +785,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         }
                     }
                     if(shape.type == "circle"){ 
-                        //@ts-ignore
-                        let shapeRadiusX = parseInt(shape.radiusX)
-                        //@ts-ignore
-                        let shapeRadiusY = parseInt(shape.radiusY)
-                        //@ts-ignore
-                        let shapeCircleX = parseInt(shape.centerX - shapeRadiusX); 
-                        //@ts-ignore
-                        let shapeCircleY = parseInt(shape.centerY - shapeRadiusY)
+                        let shapeRadiusX = Math.trunc(shape.radiusX)
+                        let shapeRadiusY = Math.trunc(shape.radiusY)
+                        let shapeCircleX = Math.trunc(shape.centerX - shapeRadiusX); 
+                        let shapeCircleY = Math.trunc(shape.centerY - shapeRadiusY)
                         // console.log("int of shape Radius" + shapeRadius)
                         let circleRect :Shape = {
                             type : "circleRect", 
@@ -824,7 +824,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     if(shape.type == "pencil"){ 
                         if(is_mouse_in_shape(startX , startY , shape)){ 
                             console.log("yessir in Shape ")
-                            
+
                         }
                     }
                 }
@@ -857,39 +857,67 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         
         clicked = false ;
         cancelRedraw = false ; 
-        const mouseX =(e.clientX - window.innerWidth/2)/cameraZoom ;  
-        const mouseY = (e.clientY - window.innerHeight/2)/cameraZoom ;
+        let mouseX =(e.clientX - window.innerWidth/2)/cameraZoom ;  
+        let mouseY = (e.clientY - window.innerHeight/2)/cameraZoom ;
         let width = mouseX - startX + window.innerWidth/2 - cameraOffset.x; 
         let height = mouseY - startY + window.innerHeight/2 - cameraOffset.y;  ; 
         // const width = e.clientX   - startX - cameraOffset.x; 
         // const height = e.clientY  -startY - cameraOffset.y ; 
         let shape :Shape | null = null;
         if(shapeRef.current == "rect"){
-           
+           if(width<=0 && height < 0){ 
+               startX += width ; 
+               startY += height ; 
+               width = Math.abs(width); 
+               height = Math.abs(height); 
+            }
+            else if(width >= 0 && height < 0){ 
+                startY += height;
+                height = Math.abs(height) ;
+            }
+            else if(width <= 0 && height > 0){ 
+                startX+=width ; 
+                width = Math.abs(width);
+            }
              shape = {
                 type: "rect",
-                x : startX ,
-                y : startY , 
-                height,
-                width
+                x : Math.trunc(startX) ,
+                y : Math.trunc(startY) , 
+                height : Math.trunc(height),
+                width : Math.trunc(width)
             }
            
         }
         else if(shapeRef.current == "circle"){ 
-            // const radius = Math.sqrt(width * width + height * height) / 2;
+            if(width<=0 && height < 0){ 
+            //    startX += width ; 
+            //    startY += height ; 
+               width = Math.abs(width); 
+               height = Math.abs(height); 
+            }
+            else if(width >= 0 && height < 0){ 
+                // startY += height;
+                height = Math.abs(height) ;
+            }
+            else if(width <= 0 && height > 0){ 
+                // startX+=width ; 
+                width = Math.abs(width);
+            }
+            const radius = Math.sqrt(width * width + height * height) / 2;
             const radiusX = width/2 ; 
-            const radiusY = height/2
+            const radiusY = height/2 ;
             const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
             const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
+            
             
 
  
             shape  = { 
                 type : "circle", 
-                radiusX : radiusX ,
-                radiusY : radiusY ,
-                centerX : centerX  , 
-                centerY : centerY,
+                radiusX : Math.trunc(radiusX),
+                radiusY : Math.trunc(radiusY) ,
+                centerX : Math.trunc(centerX)  , 
+                centerY : Math.trunc(centerY),
 
             }
         }
@@ -1050,13 +1078,27 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             let updated_shape = selected_shape
             if(selected_shape.type == "rect"){ 
                 console.log("update request :" + JSON.stringify(selected_shape))
+            if( updated_shape.width<=0 &&  updated_shape.height < 0){ 
+               updated_shape.x +=  updated_shape.width ; 
+                updated_shape.y +=  updated_shape.height ; 
+                updated_shape.width = Math.abs( updated_shape.width); 
+                updated_shape.height = Math.abs( updated_shape.height); 
+            }
+            else if( updated_shape.width >= 0 &&  updated_shape.height < 0){ 
+                 updated_shape.y +=  updated_shape.height;
+                 updated_shape.height = Math.abs( updated_shape.height) ;
+            }
+            else if( updated_shape.width <= 0 &&  updated_shape.height > 0){ 
+                 updated_shape.x+= updated_shape.width ; 
+                 updated_shape.width = Math.abs( updated_shape.width);
+            }
                 shape = { 
                     type : "rect" , 
-                    x: updated_shape.x,
-                    y: updated_shape.y , 
-                    width :updated_shape.width, 
-                    height : updated_shape.height,
-                    DBid : updated_shape.DBid
+                    x: Math.trunc(updated_shape.x),
+                    y: Math.trunc(updated_shape.y) , 
+                    width :Math.trunc(updated_shape.width), 
+                    height :Math.trunc(updated_shape.height),
+                    DBid :Math.trunc(updated_shape.DBid) 
                 }
                 selected_shape = {}
                 socket.send(JSON.stringify({
@@ -1068,16 +1110,16 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             if(selected_shape.type == "circleRect"){ 
                 console.log("updated_shape " + JSON.stringify(updated_shape))
-                    updated_shape.radiusY =(updated_shape.height / 2); 
-                    updated_shape.radiusX =(updated_shape.width / 2)
-                    updated_shape.centerX = updated_shape.x + updated_shape.radiusX ; 
-                    updated_shape.centerY = updated_shape.y + updated_shape.radiusY ; 
+                    updated_shape.radiusY =Math.trunc(updated_shape.height / 2); 
+                    updated_shape.radiusX =Math.trunc(updated_shape.width / 2)
+                    updated_shape.centerX = Math.trunc(Math.trunc(updated_shape.x) + updated_shape.radiusX) ; 
+                    updated_shape.centerY = Math.trunc(Math.trunc(updated_shape.y) + updated_shape.radiusY) ; 
                 shape = { 
                     type : "circle", 
                     centerX : updated_shape.centerX ,  
                     centerY : updated_shape.centerY , 
-                    radiusX : updated_shape.radiusX , 
-                    radiusY : updated_shape.radiusY , 
+                    radiusX : Math.abs(updated_shape.radiusX) , 
+                    radiusY : Math.abs(updated_shape.radiusY) , 
                     DBid : updated_shape.DBid
                 }
                 selected_shape = {}
@@ -1138,7 +1180,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     // requestAnimationFrame(animate);
                     ctx.beginPath();
                     ctx.strokeStyle = "rgba(255 ,255, 255)"
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
                     ctx.strokeRect(startX , startY , width , height);
                     ctx.closePath() ;
                      let shape = {
@@ -1148,6 +1190,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         height,
                         width
                     }
+                    localStorage.setItem("existingShapes" , "existingShapes[]");
+
                     // console.log("shape to go " + shape)
                     socket.send(JSON.stringify({
                         type : "liveDraw",
@@ -1168,8 +1212,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
                     const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
 
+                    console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
                     ctx.beginPath();
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth = Math.trunc(1/cameraZoom);
                     ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
                     ctx.stroke(); 
                     ctx.closePath();
@@ -1178,7 +1223,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 else if(shapeRef.current == "pencil"){ 
                     // console.log("ArrayX" + arrX)
                     ctx.beginPath();
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
                     ctx.lineCap = 'round';
                     ctx.moveTo(arrX.slice(-1)   ,arrY.slice(-1));
                     ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
@@ -1570,8 +1615,8 @@ function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTM
     // clearCanvas(parseShape , ctx , canvas  ,1)     
  
     ctx.beginPath();
-    ctx.lineWidth = 1/cameraZoom
-    ctx.strokeStyle = "rgba(255 ,255, 255)"
+    ctx.lineWidth =  Math.trunc(1/cameraZoom);
+    ctx.strokeStyle = "rgba(255 ,255, 255)";
     ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
     ctx.closePath();
     
@@ -1592,13 +1637,13 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
       existingShapes.map((shape)=> { 
             if(shape.type === "rect") { 
                 ctx.beginPath();
-                ctx.lineWidth = 1/cameraZoom;
+                ctx.lineWidth =  Math.trunc(1/cameraZoom);
                 ctx.strokeStyle = "rgba(255 ,255, 255)"
                 ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
                 ctx.closePath();
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth = Math.trunc(1/cameraZoom);
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
                     ctx.stroke(); 
                     ctx.closePath();
@@ -1609,7 +1654,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.beginPath()
                     
                     ctx.lineCap = "round";
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
                     ctx.moveTo(shape.X[i-1] , shape.Y[i-1]);
                     ctx.lineTo(shape.X[i] , shape.Y[i]);
                     ctx.stroke()
@@ -1628,7 +1673,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     shape.centerX = shape.x + shape.radiusX ; 
                     shape.centerY = shape.y + shape.radiusY ;   
                     ctx.beginPath();
-                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2) 
                     ctx.strokeRect(shape.x , shape.y  , shape.width , shape.height ) ;
                     ctx.stroke(); 
@@ -1642,6 +1687,9 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
 
 async function getExistingShapes(roomId : string ) { 
     const res = await  axios.get(`${HTTP_BACKEND}/chats/${roomId}`); 
+    //@ts-ignore
+    let localres  = JSON.parse(localStorage.getItem("existingShapes"))
+    console.log("localstorage se ye items aye" + JSON.stringify(localres))
     const messages = res.data.messages; 
     console.log("hello from get exisiting sapes"); 
     console.log("message reciive : "  + JSON.stringify(messages))
@@ -1668,6 +1716,8 @@ async function getExistingShapes(roomId : string ) {
 
     })
     // console.log(shapes)
+     localStorage.setItem("existingShapes" , JSON.stringify(shapes))
     return shapes;
+   
 }
 
