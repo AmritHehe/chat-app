@@ -7,6 +7,8 @@ import { recordTraceEvents } from "next/dist/trace";
 import { platform } from "os";
 import { difference } from "next/dist/build/utils";
 import { Sue_Ellen_Francisco } from "next/font/google";
+import { start } from "repl";
+import { Console } from "console";
 // import { json } from "stream/consumers";
 // import { Shantell_Sans } from "next/font/google";
 // import { parse } from "path";
@@ -25,7 +27,8 @@ type Shape = {
     type: "circle";
     centerX : number; 
     centerY :number; 
-    radius : number;
+    radiusX : number;
+    radiusY :number;
     DBid ?:number
 }
 | { 
@@ -38,6 +41,17 @@ type Shape = {
     type : "drag" ; 
     DBid ?: number
     
+} | { 
+    type : "circleRect" ; 
+    x:number;
+    y:number;
+    width: number;
+    height : number; 
+    centerX : number; 
+    centerY :number; 
+    radiusX : number;
+    radiusY :number
+    DBid ?: number
 }
 
 
@@ -64,8 +78,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     let ctx = canvas.getContext("2d"); 
     //@ts-ignore
     ctx.fillStyle = "rgba(0,0,0)"
-   
-
+     let hehe = false ;
+    
     // canvas.width = window.innerWidth; 
     // canvas.height = window.innerHeight
     // canvas.style.width = '100vw'
@@ -291,10 +305,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 console.log("I have reached till here (inside the circle if )")
                 console.log("shape : " + JSON.stringify(shape))
                 
-                let shape_left = shape.centerX - shape.radius; 
-                let shape_Right =  shape.centerX + shape.radius 
-                let shape_top = shape.radius + shape.centerY ; 
-                let shape_bottom = shape.centerY - shape.radius;
+                let shape_left = shape.centerX - shape.radiusX; 
+                let shape_Right =  shape.centerX + shape.radiusX 
+                let shape_top = shape.radiusY + shape.centerY ; 
+                let shape_bottom = shape.centerY - shape.radiusY;
                 // console.log(shape_left )
                 // console.log(shape_Right)
                 // console.log(shape_top)
@@ -329,7 +343,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             let shape_Bottom ; 
             let shape_Left ; 
             let shape_Right
-            if(shape.type == "rect"){ 
+            console.log("hello from is mouse in border")
+            console.log("shape I recieived" + JSON.stringify(shape))
+            console.log("start XX" + startX , "startYY " + startY )
+            if(shape.type == "rect"||shape.type=="circleRect"){ 
+                console.log("inside 1st if")
                 if(shape.width <=0 && shape.height <=0){ 
                     shape_Top = shape.y + shape.height ; 
                     shape_Bottom = shape.y; 
@@ -349,6 +367,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     shape_Right = shape.x; 
                 }
                 if(shape.width > 0 && shape.height > 0){ 
+                    console.log("inside 2nd if");
                     shape_Top = shape.y ; 
                     shape_Bottom = shape.y + shape.height ; 
                     shape_Left = shape.x ; 
@@ -665,6 +684,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             return false ;
         }
         canvas.addEventListener("mousedown" , (e) =>{
+                hehe = false
             // selected_shape = {}
                 cancelLiveDraw = true ;
                 if(shapeRef.current=="rect")
@@ -760,6 +780,53 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             continue;
                         }
                     }
+                    if(shape.type == "circle"){ 
+                        //@ts-ignore
+                        let shapeRadiusX = parseInt(shape.radiusX)
+                        //@ts-ignore
+                        let shapeRadiusY = parseInt(shape.radiusY)
+                        //@ts-ignore
+                        let shapeCircleX = parseInt(shape.centerX - shapeRadiusX); 
+                        //@ts-ignore
+                        let shapeCircleY = parseInt(shape.centerY - shapeRadiusY)
+                        // console.log("int of shape Radius" + shapeRadius)
+                        let circleRect :Shape = {
+                            type : "circleRect", 
+                            x : shapeCircleX , 
+                            y : shapeCircleY, 
+                            height : shapeRadiusY*2 , 
+                            width : shapeRadiusX*2 ,
+                            radiusX  : shapeRadiusX ,
+                            radiusY :  shapeRadiusY ,
+                            centerX : shape.centerX , 
+                            centerY : shape.centerY ,
+                            DBid : shape.DBid
+                        };  
+                        // ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
+                        console.log("circleRect"+ JSON.stringify(circleRect))
+                        console.log("startX " + startX , "startY " + startY)
+                        if(is_mouse_in_border(startX , startY , circleRect)){ 
+                            console.log("wow it works")
+                             selected_shape = circleRect;
+                            // selectedShapeIndex = i ; 
+                            console.log("old exisiting shape " + JSON.stringify(existingShapes[i]))
+                            // existingShapes.splice(i ,1); 
+                            existingShapes[i] = circleRect
+                            console.log("new exisiting shapes " + JSON.stringify(existingShapes[i]))
+                            //  existingShapes.push(circleRect)
+                             ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
+                             return;
+                        }
+                        else{ 
+                            continue;
+                        }
+                    }
+                    if(shape.type == "pencil"){ 
+                        if(is_mouse_in_shape(startX , startY , shape)){ 
+                            console.log("yessir in Shape ")
+                            
+                        }
+                    }
                 }
             }
             if(shapeRef.current == "pan"){ 
@@ -809,7 +876,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
            
         }
         else if(shapeRef.current == "circle"){ 
-            const radius = Math.sqrt(width * width + height * height) / 2;
+            // const radius = Math.sqrt(width * width + height * height) / 2;
+            const radiusX = width/2 ; 
+            const radiusY = height/2
             const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
             const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
             
@@ -817,7 +886,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
  
             shape  = { 
                 type : "circle", 
-                radius : radius , 
+                radiusX : radiusX ,
+                radiusY : radiusY ,
                 centerX : centerX  , 
                 centerY : centerY,
 
@@ -874,7 +944,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             else if(current_shape.type == "circle"){ 
                 shape = { 
                     type  : "circle", 
-                    radius :  current_shape.radius , 
+                    radiusX :  current_shape.radiusX ,
+                    radiusY :  current_shape.radiusY,
                     centerX : current_shape.centerX , 
                     centerY : current_shape.centerY ,
                     DBid : current_shape.DBid
@@ -918,7 +989,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 else if(current_shape.type == "circle"){ 
                     shape = { 
                         type  : "circle", 
-                        radius :  current_shape.radius , 
+                        radiusX :  current_shape.radiusX ,
+                        radiusY : current_shape.radiusY , 
                         centerX : current_shape.centerX , 
                         centerY : current_shape.centerY ,
                         DBid : current_shape.DBid
@@ -971,7 +1043,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         else if(shapeRef.current == "select"){ 
             console.log("sellected shape "+  JSON.stringify(selected_shape))
-            if(selected_shape.type != "rect"){ 
+            if(selected_shape.type != "rect" && selected_shape.type != "circleRect"){ 
+                console.log("yhi se return hogya ")
                 return ;
             }
             let updated_shape = selected_shape
@@ -985,14 +1058,36 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     height : updated_shape.height,
                     DBid : updated_shape.DBid
                 }
-            selected_shape = {}
-            socket.send(JSON.stringify({
-                type : "update",
+                selected_shape = {}
+                socket.send(JSON.stringify({
+                    type : "update",
                 //@ts-ignore
-                message :  shape,
-                roomId
-            }))
-        }
+                    message :  shape,
+                    roomId
+                }))
+            }
+            if(selected_shape.type == "circleRect"){ 
+                console.log("updated_shape " + JSON.stringify(updated_shape))
+                    updated_shape.radiusY =(updated_shape.height / 2); 
+                    updated_shape.radiusX =(updated_shape.width / 2)
+                    updated_shape.centerX = updated_shape.x + updated_shape.radiusX ; 
+                    updated_shape.centerY = updated_shape.y + updated_shape.radiusY ; 
+                shape = { 
+                    type : "circle", 
+                    centerX : updated_shape.centerX ,  
+                    centerY : updated_shape.centerY , 
+                    radiusX : updated_shape.radiusX , 
+                    radiusY : updated_shape.radiusY , 
+                    DBid : updated_shape.DBid
+                }
+                selected_shape = {}
+                socket.send(JSON.stringify({
+                    type : "update",
+                //@ts-ignore
+                    message :  shape,
+                    roomId
+                }))
+            }
         }
         else { 
             return
@@ -1025,6 +1120,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // console.log(e.clientY)
             //IF DONO HI NHI TO jav shapes aajate hai tab dikkat hoti hai like tab brightness badti hai 
         })
+      
         canvas.addEventListener("mousemove" , (e) => { 
             if(clicked) { 
                 // console.log("inside the function")
@@ -1066,13 +1162,15 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     // e.preventDefault()
                     // clearCanvas(existingShapes , canvas , ctx )
                     Redraw()
-                    const radius = Math.sqrt(width * width + height * height) / 2;
+                    // const radius = Math.sqrt(width * width + height * height) / 2;
+                    const radiusX = width/2; 
+                    const radiusY = height/2;
                     const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
                     const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
 
                     ctx.beginPath();
                     ctx.lineWidth = 1/cameraZoom;
-                    ctx.arc(centerX , centerY , Math.abs(radius) , 0 , Math.PI * 2) 
+                    ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
                     ctx.stroke(); 
                     ctx.closePath();
                 
@@ -1144,29 +1242,53 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }
                 else if(shapeRef.current == "select"){
                     // cancelRedraw= false;
-                    // console.log("hello from mouse move ")
-                    let width = selected_shape.width ; 
+                    console.log("hello from mouse move ")
+                    console.log("selected shape"+ JSON.stringify(selected_shape))
+                    
                     let height = selected_shape.height ;
                     let currentX = (e.clientX - window.innerWidth/2)/cameraZoom
                     let currentY = (e.clientY - window.innerHeight/2)/cameraZoom
                     let  mouseX = currentX+window.innerWidth/2 -cameraOffset.x; 
                     let  mouseY = currentY+window.innerHeight/2 -cameraOffset.y;
                     if(whatToResize == "left" ){ 
-                        console.log("hello from mousemove hehe")
+                        // console.log("hello from mousemove hehe")
+                        console.log( "hello from left")
+                        console.log("current Selected Shape " + JSON.stringify(selected_shape))
                         if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
-                            
+                        console.log("left ke plus wale mein")
+                        //  console.log("selected shape width before operations " + selected_shape.width); 
+                        // console.log("selected shape before operations X "  + selected_shape.x)
                         let difference  = selected_shape.x- mouseX
+                        // console.log("difference" + difference)
                         selected_shape.x = mouseX
                         selected_shape.width+=difference
-                        if(difference>=selected_shape.width){ 
-                            selected_shape-=difference
-                        }
-                        
                         Redraw()
                         startX = mouseX 
                         startY = mouseY
-                        } 
+                        console.log("selected shape width " + selected_shape.width); 
+                        console.log("selected shape X "  + selected_shape.x)
+                        console.log("current mouse X" + mouseX)
+                         console.log("difference" + difference)
+                         console.log("current mouse X" + mouseX)
+                         let khikhi = selected_shape.width - 5 + selected_shape.x
+                        console.log("selectedshape width plus selected shape x " + (khikhi))
+                        if(selected_shape.width<0){ 
+                            console.log("went from here to right")
+                            whatToResize = "right"
+                            
+                        }
+                        // if((mouseX  == (selected_shape.width-1 + selected_shape.x))||  (mouseX == (selected_shape.width -2 + selected_shape.x))){ 
+                        //     console.log("yha to agya")
+                        //     selected_shape.x = khikhi; 
+                        //     selected_shape.width = (khikhi-mouseX)-2
+                        //      console.log("selected shape X from if "  + selected_shape.x)
+                        //       console.log("selected shape X from if "  + selected_shape.width)
+                        //     whatToResize = "right"
+                        //     selected_shape
+                        // } 
+                        }
                         else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <= 0 && selected_shape.width <=0)){ 
+                            console.log("le bhosdu mein to yha agya left ke minus mein")
                             let difference = selected_shape.x + selected_shape.width -mouseX ; 
                             // selected_shape.x = mouseX ; 
                             selected_shape.width-=difference
@@ -1174,21 +1296,43 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw()
                             startX = mouseX 
                             startY = mouseY
+                             if(selected_shape.width>-1){ 
+                                console.log("went from here to right")
+                                whatToResize = "right"
+                            
+                            }
                         }
                         
                     }
                     else if(whatToResize == "right"){ 
+                        console.log("hello from right")
+                        console.log("current Selected Shape " + JSON.stringify(selected_shape))
                         if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
-                            
+                            console.log("right ke plus wale mein agya")
+                         console.log("current Selected Shape " + JSON.stringify(selected_shape))
+
                         let difference  =  selected_shape.x+selected_shape.width - mouseX
 
                         selected_shape.width-=difference
-                        
+                        console.log("selected shape width " + selected_shape.width); 
+                        console.log("selected shape X "  + selected_shape.x)
+                        console.log("current mouse X" + mouseX)
+                         console.log("difference" + difference)
+                         console.log("current mouse X" + mouseX)
                         Redraw()
                         startX = mouseX 
                         startY = mouseY
+                        // if((mouseX  == (selected_shape.x-selected_shape.width))||(mouseX == (selected_shape.x+2 -selected_shape.width))){ 
+                        if(selected_shape.width < 0){
+                            // console.log("hello from if ")
+                            whatToResize = "left"
+                            // selected_shape.x=selected_shape.width+mouseX;
+                            // hehe = true;  
+                            // selected_shape.width = selected_shape.x + 1;
+                        }  
                         } 
                         else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
+                            console.log("le bhosdu right wale mein bhi agya right ke minus wale mein  ")
                             let difference = selected_shape.x  -mouseX ; 
                             selected_shape.x = mouseX ; 
                             selected_shape.width+=difference
@@ -1196,6 +1340,13 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw()
                             startX = mouseX 
                             startY = mouseY
+                            if(selected_shape.width >-1){
+                            // console.log("hello from if ")
+                            whatToResize = "left"
+                            // selected_shape.x=selected_shape.width+mouseX;
+                            // hehe = true;  
+                            // selected_shape.width = selected_shape.x + 1;
+                        } 
                         }
                     }
                     else if(whatToResize == "top"){ 
@@ -1208,6 +1359,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw()
                             startX = mouseX 
                             startY = mouseY
+                            if(selected_shape.height<=0){ 
+                                whatToResize="bottom"
+                            }
                         } 
                         else if((selected_shape.height <=0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
                             let difference = selected_shape.y + selected_shape.height - mouseY ; 
@@ -1216,6 +1370,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw()
                             startX = mouseX 
                             startY = mouseY
+                            if(selected_shape.height>0){ 
+                                whatToResize="bottom"
+                            }
                         }
                     }
 
@@ -1228,6 +1385,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                              Redraw()
                             startX = mouseX 
                             startY = mouseY
+                            if(selected_shape.height<=0){ 
+                                whatToResize="top"
+                            }
                         }
                         else if((selected_shape.height <=0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
                             let difference = selected_shape.y - mouseY ; 
@@ -1237,11 +1397,15 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw()
                             startX = mouseX 
                             startY = mouseY
+                            if(selected_shape.height<=0){ 
+                                whatToResize="bottom"
+                            }
                         }
                     }
                     }
                     
                 else if(shapeRef.current == "pan"){ 
+                    canvas.style.cursor == "grabbing"
                     // const mousePos = getEventLocation(e);
                 // if (mousePos) {
                     cameraOffset.x = getEventLocation(e).x/cameraZoom - dragStart.x
@@ -1435,7 +1599,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
                     ctx.lineWidth = 1/cameraZoom;
-                    ctx.arc(shape.centerX , shape.centerY , Math.abs(shape.radius) , 0 , Math.PI * 2) 
+                    ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
                     ctx.stroke(); 
                     ctx.closePath();
             }
@@ -1458,7 +1622,18 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 // ctx.lineTo(shape.X , shape.Y)
                 
             }
-               
+            else if(shape.type == "circleRect"){ 
+                     shape.radiusY = shape.height / 2; 
+                    shape.radiusX = shape.width / 2
+                    shape.centerX = shape.x + shape.radiusX ; 
+                    shape.centerY = shape.y + shape.radiusY ;   
+                    ctx.beginPath();
+                    ctx.lineWidth = 1/cameraZoom;
+                    ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2) 
+                    ctx.strokeRect(shape.x , shape.y  , shape.width , shape.height ) ;
+                    ctx.stroke(); 
+                    ctx.closePath();
+            }      
             }
         
       )
