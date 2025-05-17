@@ -22,20 +22,26 @@ type Shape = {
     y:number;
     width: number;
     height : number; 
-    DBid ?: number
+    DBid ?: number;
+    strokeW ?:number | 1;
+    strokeC ?: string ;
 } | { 
     type: "circle";
     centerX : number; 
     centerY :number; 
     radiusX : number;
     radiusY :number;
-    DBid ?:number
+    DBid ?:number ;
+    strokeW ?:number|1;
+    strokeC ?: string ;
 }
 | { 
    type: "pencil" ;
    X  : number[] ; 
    Y :number[] ; 
    DBid ?: number ; 
+   strokeW ?:number|1;
+   strokeC ?: string ;
 
 } | {
     type : "drag" ; 
@@ -50,12 +56,13 @@ type Shape = {
     centerX : number; 
     centerY :number; 
     radiusX : number;
-    radiusY :number
+    radiusY :number;
+    strokeW ?:number |1
     DBid ?: number
 }
 
 
-export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> ){
+export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string>){
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     let offset_x :any; 
@@ -126,7 +133,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         // ctx.translate( -window.innerWidth / 2 , -window.innerHeight / 2  )
 
 
-        clearCanvas(existingShapes, canvas, ctx ,cameraZoom);
+        clearCanvas(existingShapes, canvas, ctx ,cameraZoom , strokeRef);
         if(!cancelRedraw){ 
         requestAnimationFrame(Redraw)
         }
@@ -174,7 +181,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 console.log("updated the exisitng shape")
                 console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                 localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
-                clearCanvas(existingShapes , canvas , ctx ,cameraZoom)
+                clearCanvas(existingShapes , canvas , ctx ,cameraZoom ,strokeRef)
                 // Redraw()
                 return;
             }
@@ -192,7 +199,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     // existingShapes[i] = parseShape;
                     console.log("deleted the exisitng shape")
                     console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
-                    clearCanvas(existingShapes , canvas , ctx ,cameraZoom)
+                    clearCanvas(existingShapes , canvas , ctx ,cameraZoom )
                     // Redraw()
                     return;
                 }
@@ -227,7 +234,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                  return
             }
             if(!cancelLiveDraw){
-                LiveDraw(parseShape , ctx , canvas ,existingShapes, cameraZoom , cameraOffset)
+                LiveDraw(parseShape , ctx , canvas ,existingShapes, cameraZoom , cameraOffset , strokeRef)
                 requestAnimationFrame(hehe)
             }
             }
@@ -246,7 +253,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
         
 
-        clearCanvas(existingShapes , canvas , ctx , cameraZoom )
+        clearCanvas(existingShapes , canvas , ctx , cameraZoom  )
         ctx.strokeStyle = "rgba(255 ,255, 255)"
         let clicked = false ; 
         let startX = 0; 
@@ -884,7 +891,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 x : Math.trunc(startX) ,
                 y : Math.trunc(startY) , 
                 height : Math.trunc(height),
-                width : Math.trunc(width)
+                width : Math.trunc(width) ,
+                strokeW : strokeRef.current , 
+                strokeC : strokeColorRef.current
             }
            
         }
@@ -918,6 +927,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 radiusY : Math.trunc(radiusY) ,
                 centerX : Math.trunc(centerX)  , 
                 centerY : Math.trunc(centerY),
+                strokeW : strokeRef.current,
+                strokeC : strokeColorRef.current
 
             }
         }
@@ -932,7 +943,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             shape = { 
                 type : "pencil" , 
                 X : heheX , 
-                Y : heheY
+                Y : heheY ,
+                strokeW : strokeRef.current,
+                strokeC : strokeColorRef.current
             }
             arrX.length = 0 ; 
             arrY.length = 0 ; 
@@ -1010,7 +1023,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         y: current_shape.y , 
                         width :current_shape.width, 
                         height : current_shape.height,
-                        DBid : current_shape.DBid
+                        DBid : current_shape.DBid,
     
                     }
                 }
@@ -1053,7 +1066,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     roomId
                 }))
             }
-            clearCanvas(existingShapes , canvas , ctx,cameraZoom)
+            clearCanvas(existingShapes , canvas , ctx,cameraZoom )
             // }
             
             // if(sendhogye){
@@ -1120,6 +1133,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     centerY : updated_shape.centerY , 
                     radiusX : Math.abs(updated_shape.radiusX) , 
                     radiusY : Math.abs(updated_shape.radiusY) , 
+                    strokeW : strokeRef.current,
                     DBid : updated_shape.DBid
                 }
                 selected_shape = {}
@@ -1179,27 +1193,29 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     Redraw()
                     // requestAnimationFrame(animate);
                     ctx.beginPath();
-                    ctx.strokeStyle = "rgba(255 ,255, 255)"
-                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
-                    ctx.strokeRect(startX , startY , width , height);
+                    console.log("stroke Color ref .current" + strokeColorRef.current)
+                    ctx.strokeStyle = strokeColorRef.current      
+                    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
+                    ctx.roundRect(startX , startY , width , height , [40]);
+                    ctx.stroke()
                     ctx.closePath() ;
-                     let shape = {
-                        type: "rect",
-                        x : startX,
-                        y : startY , 
-                        height,
-                        width
-                    }
-                    localStorage.setItem("existingShapes" , "existingShapes[]");
+                    //  let shape = {
+                    //     type: "rect",
+                    //     x : startX,
+                    //     y : startY , 
+                    //     height,
+                    //     width
+                    // }
+                    // localStorage.setItem("existingShapes" , "existingShapes[]");
 
                     // console.log("shape to go " + shape)
-                    socket.send(JSON.stringify({
-                        type : "liveDraw",
-                        message : JSON.stringify({
-                            shape
-                        }),
-                        roomId
-                    }))
+                    // socket.send(JSON.stringify({
+                    //     type : "liveDraw",
+                    //     message : JSON.stringify({
+                    //         shape
+                    //     }),
+                    //     roomId
+                    // }))
                 // ctx.beginPath();
                 }
                 else if(shapeRef.current == "circle"){ 
@@ -1214,7 +1230,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
                     console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
                     ctx.beginPath();
-                    ctx.lineWidth = Math.trunc(1/cameraZoom);
+                    ctx.strokeStyle = strokeColorRef.current
+                    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
                     ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
                     ctx.stroke(); 
                     ctx.closePath();
@@ -1223,7 +1240,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 else if(shapeRef.current == "pencil"){ 
                     // console.log("ArrayX" + arrX)
                     ctx.beginPath();
-                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
+                     ctx.strokeStyle = strokeColorRef.current
+                     ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
                     ctx.lineCap = 'round';
                     ctx.moveTo(arrX.slice(-1)   ,arrY.slice(-1));
                     ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
@@ -1595,14 +1613,14 @@ function fixZoomInLive(ctx : CanvasRenderingContext2D , canvas : HTMLCanvasEleme
     ctx.scale(cameraZoom, cameraZoom)
     ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y )
 }
-function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTMLCanvasElement , exisitingShapes : any, cameraZoom : number, cameraOffset :any){
+function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTMLCanvasElement , exisitingShapes : any, cameraZoom : number, cameraOffset :any ,strokeRef:any){
     // console.log("hello from the parsedShape")
     // console.log("here is the parseShape I am getting :" +JSON.stringify(parseShape.shape))
     // console.log("here is the context i am getting " +JSON.stringify(ctx) ) ; 
     // console.log("here is the canvas I am getting " + canvas)
     // ctx.setTransform(1, 0, 0, 1, 0, 0);
     fixZoomInLive(ctx, canvas , cameraZoom , cameraOffset)
-    clearCanvas(exisitingShapes , canvas , ctx , cameraZoom)
+    clearCanvas(exisitingShapes , canvas , ctx , cameraZoom )
     let shape = parseShape.shape;
     // console.log("shapeX " + JSON.stringify(shape.x) + " shapeY " +shape.y + " weidth " + shape.width + " height " + shape.height )  
     // ctx.clearRect(0,0, canvas.width , canvas.height); 
@@ -1615,9 +1633,10 @@ function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTM
     // clearCanvas(parseShape , ctx , canvas  ,1)     
  
     ctx.beginPath();
-    ctx.lineWidth =  Math.trunc(1/cameraZoom);
+    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
     ctx.strokeStyle = "rgba(255 ,255, 255)";
-    ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
+    ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
+    ctx.stroke()
     ctx.closePath();
     
     // requestAnimationFrame(LiveDraw(parseShape , ctx , canvas))
@@ -1637,13 +1656,16 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
       existingShapes.map((shape)=> { 
             if(shape.type === "rect") { 
                 ctx.beginPath();
-                ctx.lineWidth =  Math.trunc(1/cameraZoom);
-                ctx.strokeStyle = "rgba(255 ,255, 255)"
-                ctx.strokeRect(shape.x, shape.y , shape.width , shape.height); 
+                //@ts-ignore
+                ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                ctx.strokeStyle = shape.strokeC;
+                ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
+                ctx.stroke()
                 ctx.closePath();
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
-                    ctx.lineWidth = Math.trunc(1/cameraZoom);
+                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    ctx.strokeStyle = shape.strokeC;
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
                     ctx.stroke(); 
                     ctx.closePath();
@@ -1654,7 +1676,8 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.beginPath()
                     
                     ctx.lineCap = "round";
-                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
+                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) ;
+                    ctx.strokeStyle = shape.strokeC;
                     ctx.moveTo(shape.X[i-1] , shape.Y[i-1]);
                     ctx.lineTo(shape.X[i] , shape.Y[i]);
                     ctx.stroke()
@@ -1673,7 +1696,8 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     shape.centerX = shape.x + shape.radiusX ; 
                     shape.centerY = shape.y + shape.radiusY ;   
                     ctx.beginPath();
-                    ctx.lineWidth =  Math.trunc(1/cameraZoom);
+                     ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    ctx.strokeStyle = shape.strokeC;
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2) 
                     ctx.strokeRect(shape.x , shape.y  , shape.width , shape.height ) ;
                     ctx.stroke(); 
