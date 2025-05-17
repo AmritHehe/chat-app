@@ -7,7 +7,11 @@ import { prismaClient } from "@repo/db/client"
 import cors from "cors"
 const app = express()
 const prisma = prismaClient;
-app.listen(3004)
+// app.listen(3004)
+const PORT = process.env.PORT || 3004;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 //jwt 
 app.use(express.json())
 app.use(cors())
