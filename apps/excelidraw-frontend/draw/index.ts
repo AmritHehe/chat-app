@@ -3,19 +3,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { eventNames } from "process";
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
-import { recordTraceEvents } from "next/dist/trace";
-import { platform } from "os";
-import { difference } from "next/dist/build/utils";
-import { Sue_Ellen_Francisco } from "next/font/google";
-import { start } from "repl";
-import { Console } from "console";
-// import { json } from "stream/consumers";
-// import { Shantell_Sans } from "next/font/google";
-// import { parse } from "path";
-// import { stringify } from "querystring";
-// import { Cambay, Caveat, Flow_Circular } from "next/font/google";
-// import { SocketAddress } from "net";
-// import { cookies } from "next/headers";
+
 type Shape = { 
     type: "rect" ; 
     x:number;

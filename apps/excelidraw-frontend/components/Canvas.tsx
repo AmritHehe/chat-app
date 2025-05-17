@@ -16,7 +16,7 @@ import {Text} from "@repo/ui/Text"
 import {Share} from "@repo/ui/share"
 import {Gamja_Flower} from "next/font/google"
 import {Kirang_Haerang} from "next/font/google" 
-import {Darrow} from "@repo/ui/Darrow"
+// import {Darrow} from "@repo/ui/Darrow"
 const gamja = Gamja_Flower({
         weight: '400',
         subsets: ['latin'],
