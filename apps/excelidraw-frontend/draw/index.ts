@@ -1668,8 +1668,11 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 ctx.beginPath();
                 //@ts-ignore
                 ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
+                //@ts-ignore
                 ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                //@ts-ignore
                 ctx.strokeStyle = shape.strokeC;
+                //@ts-ignore
                 ctx.fillStyle = shape.Fill
                 ctx.fill();
                 
@@ -1678,8 +1681,11 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
+                    //@ts-ignore
                     ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
+                    //@ts-ignore
                     ctx.fillStyle = shape.Fill
                     ctx.fill();
                     ctx.stroke(); 
@@ -1691,7 +1697,10 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.beginPath()
                     
                     ctx.lineCap = "round";
+                    //@ts-ignore
+                    
                     ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) ;
+                    //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
                     ctx.moveTo(shape.X[i-1] , shape.Y[i-1]);
                     ctx.lineTo(shape.X[i] , shape.Y[i]);
@@ -1710,8 +1719,12 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     shape.radiusX = shape.width / 2
                     shape.centerX = shape.x + shape.radiusX ; 
                     shape.centerY = shape.y + shape.radiusY ;   
+                    
+                    
                     ctx.beginPath();
-                     ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    //@ts-ignore
+                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2) 
                     ctx.strokeRect(shape.x , shape.y  , shape.width , shape.height ) ;

@@ -15,16 +15,16 @@ import {Diamond} from "@repo/ui/dimond"
 import {Text} from "@repo/ui/Text"
 import {Share} from "@repo/ui/share"
 import {Gamja_Flower} from "next/font/google"
-import {Kirang_Haerang} from "next/font/google" 
+// import {Kirang_Haerang} from "next/font/google" 
 // import {Darrow} from "@repo/ui/Darrow"
 const gamja = Gamja_Flower({
         weight: '400',
         subsets: ['latin'],
     })
-    const kirang = Kirang_Haerang({
-        weight: '400',
-        subsets: ['latin'],
-    })
+    // const kirang = Kirang_Haerang({
+    //     weight: '400',
+    //     subsets: ['latin'],
+    // })
 
 export default function Canvas ({roomId , socket} : { 
     roomId : string , 
@@ -34,7 +34,7 @@ export default function Canvas ({roomId , socket} : {
      
     const canvasRef = useRef<HTMLCanvasElement>(null); 
     const [currShape , setShape] = useState<Shapee>("");
-    const [theme , setTheme] = useState("dark");
+    // const [theme , setTheme] = useState("dark");
     const shapeRef = useRef<Shapee> ("")
     const strokeRef = useRef(1)
     const [menu , setMenu] = useState(false)
@@ -66,7 +66,7 @@ export default function Canvas ({roomId , socket} : {
     } , [canvasRef ])
     
    useEffect(()=>{
-    //@ts-ignore
+    //@ts-expect-error "because it couldnt be null"
     const hehe =  JSON.parse(localStorage.getItem("IntroScreen"))
     console.log("hehehehe"  +JSON.stringify(hehe))
     if(!hehe){
@@ -201,9 +201,8 @@ export default function Canvas ({roomId , socket} : {
         </div>: <></>}
         
         
-        <div className={theme == "light" ? `absolute top-0 px-4 m-4 rounded-lg bg-white` : `absolute top-0 px-4 m-4 rounded-lg bg-white invert` }>
-           
-           
+        {/* <div className={theme == "light" ? `absolute top-0 px-4 m-4 rounded-lg bg-white` : `absolute top-0 px-4 m-4 rounded-lg bg-white invert` }> */}
+           <div className="absolute top-0 px-4 m-4 rounded-lg bg-white invert">
             
            
             <button onClick={()=> {setShape("drag"); setMenu(false)}} className={ currShape == "drag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>

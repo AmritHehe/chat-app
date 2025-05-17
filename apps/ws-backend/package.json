@@ -10,14 +10,16 @@
     "dev": "tsc -b && node ./dist/index.js"
   },
   "dependencies": {
+    "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "ws": "^8.18.1",
     "ws-backend": "link:"
   },
   "devDependencies": {
-    "@repo/db": "workspace:*",
     "@repo/backend-common": "workspace:*",
+    "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/ws": "^8.18.1"
   },

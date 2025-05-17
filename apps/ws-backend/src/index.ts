@@ -1,7 +1,18 @@
 import {WebSocket ,  WebSocketServer } from 'ws';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { JWT_SECRET } from '@repo/backend-common/config'
-const wss = new WebSocketServer({ port: 8080 });
+// const wss = new WebSocketServer({ port: 8080 });
+import http from 'http';
+import express from 'express';
+// import { WebSocketServer } from 'ws';
+
+const app = express();
+const server = http.createServer(app);
+
+const wss = new WebSocketServer({ server }); 
+app.get('/', (_, res) => {
+  res.send('WebSocket server is live');
+});
 import {prismaClient} from "@repo/db/client"
 
 
@@ -204,4 +215,8 @@ wss.on('connection', function connection(ws, request) {
   });
 
   
-}); 
+}); const PORT = process.env.PORT || 8080;
+
+server.listen(PORT, () => {
+  console.log(`WebSocket server listening on port ${PORT}`);
+});
