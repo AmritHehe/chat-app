@@ -179,6 +179,25 @@ wss.on('connection', function connection(ws, request) {
         }
       })
     }
+    if(parseData.type == "clear"){ 
+      console.log("???")
+      try { 
+        const roomId = parseData.roomId; 
+        await prismaClient.chat.deleteMany({})
+        users.forEach(user => { 
+        if(user.rooms.includes(roomId)){ 
+          user.ws.send(JSON.stringify({
+            type : "clear", 
+            roomId ,
+          }))
+        }
+      })
+      console.log("Thanos Swap done")
+
+      }catch(e){ 
+        console.log("thanos swap failed")
+      }
+    }
 
 
 

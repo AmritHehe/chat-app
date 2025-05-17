@@ -30,7 +30,7 @@ export default function Canvas ({roomId , socket} : {
     roomId : string , 
     socket : WebSocket
 } ){ 
-    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | "pan" | "erase" | string
+    type Shapee = "pencil " | "rect" | "circle" | "square" | "line" | "arrow" | "drag" | "pan" | "erase" |"clear"| string
      
     const canvasRef = useRef<HTMLCanvasElement>(null); 
     const [currShape , setShape] = useState<Shapee>("");
@@ -42,6 +42,11 @@ export default function Canvas ({roomId , socket} : {
     const [strokeW , setStrokeW] = useState(1)
     const [strokeC , setStrokeC] = useState("#A4CAFE")
     const strokeColorRef = useRef(strokeC)
+    const [bodyColor , setBodyColor] = useState("#000000")
+    const bodyColorRef = useRef(bodyColor)
+    useEffect(()=> { 
+        bodyColorRef.current = bodyColor
+    } , [bodyColor])
     useEffect(()=> { 
         strokeColorRef.current = strokeC; 
     }, [strokeC])
@@ -56,7 +61,7 @@ export default function Canvas ({roomId , socket} : {
     useEffect(()=> {
         if(canvasRef.current){  
             
-            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef)
+            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef , bodyColorRef)
         }
     } , [canvasRef ])
     
@@ -91,13 +96,13 @@ export default function Canvas ({roomId , socket} : {
             Background
         </div>
         <div className="flex  justify-center">
-            <button className="bg-white rounded-lg w-8 h-8 p-1 m-1"> </button>
-            <button className="bg-rose-400 rounded-lg p-1 w-8 h-8 m-1 text-rose-400">  </button>
-            <button className="bg-green-500 rounded-lg p-1 m-1 w-8 h-8 text-green-500">  </button>
-            <button className="bg-sky-400 rounded-lg p-1 m-1 w-8 h-8 text-sky-400"> </button>
+            <button onClick={()=>{setBodyColor("rgba(255, 0, 0, 0)")}} className="bg-white rounded-lg w-8 h-8 p-1 m-1"> Null </button>
+            <button onClick={()=>{setBodyColor("#FBD5D5")}} className="bg-red-200 rounded-lg p-1 w-8 h-8 m-1 text-rose-400">  </button>
+            <button onClick={()=>{setBodyColor("#84E1BC")}} className="bg-green-300 rounded-lg p-1 m-1 w-8 h-8 text-green-500">  </button>
+            <button onClick={()=>{setBodyColor("#C3DDFD")}} className="bg-blue-200 rounded-lg p-1 m-1 w-8 h-8 text-sky-400"> </button>
             <p className="p-2 inline-block text-zinc-600"> | </p>
 
-            <div className="w-12 h-10 rounded-lg"><input id="colorInput" className="w-full overflow-hidden h-full rounded-lg"  type="color" /></div>
+            <div className="w-12 h-10 rounded-lg"><input id="colorInput" value = {bodyColor} onChange={(e)=> {setBodyColor(e.target.value) }} className="w-full overflow-hidden h-full rounded-lg"  type="color" /></div>
         </div>
         <div className="ml-3 mt-4 m-1.5 text-sm">
             Stroke width
@@ -128,10 +133,10 @@ export default function Canvas ({roomId , socket} : {
         : <></>}
         {menu ? <div className="absolute left-0 top-15 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
         
-        <div className=" m-1 relative  h-15 w-58">
+        <div  className="  m-1 relative  h-15 w-58">
            
-            <img className="object-fit rounded-xl w-full h-25" src="https://www.themarysue.com/wp-content/uploads/2023/05/thanos-snap.jpeg?fit=1350%2C870" alt="" />
-             <p className="absolute   text-white top-18 text-sm left-2 text-shadow-gray-900 z-30">Clear canvas</p>
+            <img onClick={()=>{setShape("clear");console.log("seth the shape to clear from photo" + console.log(currShape))}} className="object-fit rounded-xl w-full h-25" src="https://www.themarysue.com/wp-content/uploads/2023/05/thanos-snap.jpeg?fit=1350%2C870" alt="" />
+             <p onClick={()=>{setShape("clear") ; console.log("seth the shape to clear")}} className="absolute   text-white top-18 text-sm left-2 text-shadow-gray-900 z-30">Clear canvas</p>
         </div>
         <div className="flex items-end p-2 m-1 h-10 text-sm">
             Export Drawing

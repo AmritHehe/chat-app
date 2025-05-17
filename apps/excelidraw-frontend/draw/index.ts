@@ -25,6 +25,7 @@ type Shape = {
     DBid ?: number;
     strokeW ?:number | 1;
     strokeC ?: string ;
+    Fill ?: string ; 
 } | { 
     type: "circle";
     centerX : number; 
@@ -34,6 +35,7 @@ type Shape = {
     DBid ?:number ;
     strokeW ?:number|1;
     strokeC ?: string ;
+    Fill ?: string ; 
 }
 | { 
    type: "pencil" ;
@@ -62,7 +64,7 @@ type Shape = {
 }
 
 
-export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string>){
+export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string> , bodyColorRef : RefObject<string>){
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     let offset_x :any; 
@@ -133,7 +135,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         // ctx.translate( -window.innerWidth / 2 , -window.innerHeight / 2  )
 
 
-        clearCanvas(existingShapes, canvas, ctx ,cameraZoom , strokeRef);
+        clearCanvas(existingShapes, canvas, ctx ,cameraZoom );
         if(!cancelRedraw){ 
         requestAnimationFrame(Redraw)
         }
@@ -181,7 +183,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 console.log("updated the exisitng shape")
                 console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                 localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
-                clearCanvas(existingShapes , canvas , ctx ,cameraZoom ,strokeRef)
+                clearCanvas(existingShapes , canvas , ctx ,cameraZoom )
                 // Redraw()
                 return;
             }
@@ -248,7 +250,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // Redraw()
             // clearCanvas(existingShapes , canvas , ctx , cameraZoom)
         }
-       
+        if(message.type == "clear"){ 
+            existingShapes = [];
+            Redraw();
+            return ;
+        }
     }
 
         
@@ -844,6 +850,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             if(shapeRef.current == "eraseDrag"){ 
 
             }
+            if(shapeRef.current == "clear"){ 
+
+            }
             // if(shapeRef.current == "erase"){
             //     e.preventDefault()
 
@@ -893,7 +902,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 height : Math.trunc(height),
                 width : Math.trunc(width) ,
                 strokeW : strokeRef.current , 
-                strokeC : strokeColorRef.current
+                strokeC : strokeColorRef.current , 
+                Fill : bodyColorRef.current
             }
            
         }
@@ -928,8 +938,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 centerX : Math.trunc(centerX)  , 
                 centerY : Math.trunc(centerY),
                 strokeW : strokeRef.current,
-                strokeC : strokeColorRef.current
-
+                strokeC : strokeColorRef.current,
+                Fill : bodyColorRef.current
             }
         }
         else if(shapeRef.current == "pencil"){ 
@@ -1145,12 +1155,20 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }))
             }
         }
+        else if(shapeRef.current == "clear"){ 
+            console.log("hello from here");
+            socket.send(JSON.stringify({
+                    type : "clear",
+                    roomId
+                }))
+        }
         else { 
             return
         }
+
         
         
-        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" ) {
+        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" && shapeRef.current != "clear") {
             
             console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
@@ -1193,10 +1211,13 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     Redraw()
                     // requestAnimationFrame(animate);
                     ctx.beginPath();
-                    console.log("stroke Color ref .current" + strokeColorRef.current)
+                     ctx.roundRect(startX , startY , width , height , [40]);
+                    // console.log("stroke Color ref .current" + strokeColorRef.current)
                     ctx.strokeStyle = strokeColorRef.current      
                     ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
-                    ctx.roundRect(startX , startY , width , height , [40]);
+                    ctx.fillStyle=bodyColorRef.current
+                    ctx.fill();
+
                     ctx.stroke()
                     ctx.closePath() ;
                     //  let shape = {
@@ -1230,9 +1251,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
                     console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
                     ctx.beginPath();
-                    ctx.strokeStyle = strokeColorRef.current
                     ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
                     ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
+                    ctx.strokeStyle = strokeColorRef.current
+                    ctx.fillStyle=bodyColorRef.current
+                    ctx.fill();
                     ctx.stroke(); 
                     ctx.closePath();
                 
@@ -1240,12 +1263,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 else if(shapeRef.current == "pencil"){ 
                     // console.log("ArrayX" + arrX)
                     ctx.beginPath();
+                     ctx.moveTo(arrX.slice(-1)   ,arrY.slice(-1));
+                    ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
                      ctx.strokeStyle = strokeColorRef.current
                      ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
                     ctx.lineCap = 'round';
-                    ctx.moveTo(arrX.slice(-1)   ,arrY.slice(-1));
-                    ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
-
                     arrX.push(mouseX + window.innerWidth/2 - cameraOffset.x)
                     arrY.push(mouseY + window.innerHeight/2 - cameraOffset.y)
                     // ctx.lineCap = "round";
@@ -1657,16 +1679,21 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
             if(shape.type === "rect") { 
                 ctx.beginPath();
                 //@ts-ignore
+                ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
                 ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
                 ctx.strokeStyle = shape.strokeC;
-                ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
+                ctx.fillStyle = shape.Fill
+                ctx.fill();
+                
                 ctx.stroke()
                 ctx.closePath();
             }else if (shape.type == "circle"){ 
                     ctx.beginPath();
+                    ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
                     ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
                     ctx.strokeStyle = shape.strokeC;
-                    ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
+                    ctx.fillStyle = shape.Fill
+                    ctx.fill();
                     ctx.stroke(); 
                     ctx.closePath();
             }
