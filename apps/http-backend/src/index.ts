@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '/etc/secrets/.env' }); // <== this is critical!
+
 import express from "express"
 import jwt from "jsonwebtoken"
 import { JWT_SECRET } from '@repo/backend-common/config'
