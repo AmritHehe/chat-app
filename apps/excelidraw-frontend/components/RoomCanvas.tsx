@@ -12,7 +12,7 @@ import Canvas from "./Canvas";
 export function RoomCanvas ({roomId} : {roomId :string}){ 
     const [socket , setSocket ] = useState<WebSocket | null > (null); 
 
-
+// ${WS_URL}
     useEffect(()=> { 
         const ws = new WebSocket(`${WS_URL}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MDk4YTg5ZS0xZjY5LTQ0NGMtYjhkNi0yYjlhMDc0NGZjYzgiLCJpYXQiOjE3NDcxOTY0OTR9.rdALpNkpV_3PRMVoPXpNuAF1E0NKTuEzIHAHKYl8WeY`)
         ws.onopen = () => { 

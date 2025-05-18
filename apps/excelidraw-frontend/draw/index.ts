@@ -701,8 +701,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }
            
                          
-                startX = (e.clientX - window.innerWidth / 2) / cameraZoom + window.innerWidth/2 - cameraOffset.x
-                startY =  (e.clientY - window.innerHeight/ 2) / cameraZoom + window.innerHeight/2 - cameraOffset.y
+                startX = Math.trunc((e.clientX - window.innerWidth / 2) / cameraZoom + window.innerWidth/2 - cameraOffset.x)
+                startY =  Math.trunc((e.clientY - window.innerHeight/ 2) / cameraZoom + window.innerHeight/2 - cameraOffset.y)
             // Redraw();
             // console.log(cameraOffset)
             cancelRedraw = true ; 

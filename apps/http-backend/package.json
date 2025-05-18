@@ -12,9 +12,11 @@
   "dependencies": {
     "@repo/db": "workspace:*",
     "@types/cors": "^2.8.17",
+    "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "http-backend": "link:",
     "jsonwebtoken": "^9.0.2",
