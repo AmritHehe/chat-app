@@ -40,19 +40,16 @@ export function RoomCreator (){
             alert("created the room , taking to the canvas..")
              router.push(`/canvas/${roomId}`);
         }
-        catch{ 
-            (e:any)=> {console.log(e) ; 
+        catch(e:unknown){  
             alert("something went wrong"+ e)}
         }
         
-        
-    }
     async function joinRoom() {
         try {
             alert("created the room , taking to the canvas..")
           router.push(`/canvas/${join}`);
          }
-         catch(e){ 
+         catch(e:unknown){ 
             alert ("roomId doesnt exist " +e)
          }
          
@@ -65,7 +62,7 @@ export function RoomCreator (){
     return <>
         
         <div  className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center">
-           <div className="text-xl mb-4">Create a roomID or Join one ! </div> 
+           <div className="text-xl mb-4">Enter a Room Name </div> 
             {/* <Input placeholder  ="Username" type = "text" onChange = {setInput} />  */}
             {/* {input} */}
             {/* <Input placeholder="password" type = "password" onChange = {setPassword} /> */}

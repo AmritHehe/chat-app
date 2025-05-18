@@ -38,7 +38,7 @@ export function RoomCanvas ({roomId} : {roomId :string}){
             ws.close();
         }
 
-    },[])
+    },[roomId , router ,])
     
     if(!socket) { 
         return <div>

@@ -41,9 +41,8 @@ export function AuthPage ({isSignin} : {isSignin : boolean}){
             localStorage.setItem("userId" , response.data.userId)
            router.push('/signin');
         }
-        catch{ 
-            (e:any)=> console.log(e) ; 
-            alert("something went wrong")
+        catch(e:unknown){ 
+            alert("something went wrong"+e)
         }
         
         
@@ -67,7 +66,7 @@ export function AuthPage ({isSignin} : {isSignin : boolean}){
             alert("signed in.")
            router.push('/room');
         }
-        catch(e){ 
+        catch(e:unknown){ 
             
             alert("something went wrong"+ e)
         }
