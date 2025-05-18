@@ -14,6 +14,7 @@ app.get('/', (_, res) => {
   res.send('WebSocket server is live');
 });
 import {prismaClient} from "@repo/db/client"
+const PORT = parseInt(process.env.PORT || "8080");
 
 
 interface User { 
@@ -44,12 +45,14 @@ wss.on('connection', function connection(ws, request) {
   if(!url){ 
     return;
   }
-  const queryParams = new URLSearchParams(url.split("?")[1]);
-  const token = queryParams.get('token') || ""; 
+  // const queryParams = new URLSearchParams(url.split("?")[1]);
+  // const token = queryParams.get('token') || ""; 
+  const fullUrl = new URL(request.url || "", `http://${request.headers.host}`);
+  const token = fullUrl.searchParams.get("token") || "";
   const userId = checkUser(token); 
   if(userId==null){ 
-    ws.close()
-    return null;
+    ws.close(1008 , "Invalid Token")
+    return ;
   } 
   users.push({ 
     userId, 
@@ -215,7 +218,7 @@ wss.on('connection', function connection(ws, request) {
   });
 
   
-}); const PORT = process.env.PORT || 8080;
+}); 
 
 server.listen(PORT, () => {
   console.log(`WebSocket server listening on port ${PORT}`);
