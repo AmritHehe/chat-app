@@ -83,7 +83,8 @@ app.post("/signin" , async  (req , res) => {
     },JWT_SECRET); 
 
     res.json({ 
-        token
+        token ,
+        userid :  user.id
     })
 })
 app.post ("/room",middleware , async (req , res)=> { 

@@ -8,13 +8,25 @@ import { WS_URL } from "@/config";
 import { useEffect, useState } from "react";
 import Canvas from "./Canvas";
 
+import { useRouter } from "next/navigation";
+
 
 export function RoomCanvas ({roomId} : {roomId :string}){ 
+    const router = useRouter();
     const [socket , setSocket ] = useState<WebSocket | null > (null); 
 
+   
 // ${WS_URL}
+
+   
+
     useEffect(()=> { 
-        const ws = new WebSocket(`${WS_URL}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MDk4YTg5ZS0xZjY5LTQ0NGMtYjhkNi0yYjlhMDc0NGZjYzgiLCJpYXQiOjE3NDcxOTY0OTR9.rdALpNkpV_3PRMVoPXpNuAF1E0NKTuEzIHAHKYl8WeY`)
+        
+        const token = localStorage.getItem("token");
+        if (!token) {
+          router.push("/signin"); // Redirect to sign-in page if no token
+        }
+        const ws = new WebSocket(`${WS_URL}?token=${token}`)
         ws.onopen = () => { 
             setSocket(ws);
             ws.send(JSON.stringify({
@@ -22,7 +34,9 @@ export function RoomCanvas ({roomId} : {roomId :string}){
                 roomId
             }))
         }
-
+        return ()=>{ 
+            ws.close();
+        }
 
     },[])
     
