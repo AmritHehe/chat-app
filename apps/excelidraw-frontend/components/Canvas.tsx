@@ -66,7 +66,6 @@ export default function Canvas ({roomId , socket} : {
     } , [canvasRef ])
     
    useEffect(()=>{
-    //@ts-expect-error "because it couldnt be null"
     const hehe =  JSON.parse(localStorage.getItem("IntroScreen"))
     console.log("hehehehe"  +JSON.stringify(hehe))
     if(!hehe){
