@@ -41,6 +41,11 @@ function checkUser(token : string) : string | null {
    }
 }
 wss.on('connection', function connection(ws, request) {
+  console.log("WS connected:", request.url);
+    ws.on("error", (err) => {
+    console.error("WS Error:", err);
+  });
+
   const url = request.url; 
   if(!url){ 
     return;
@@ -220,6 +225,6 @@ wss.on('connection', function connection(ws, request) {
   
 }); 
 
-server.listen(PORT, () => {
+server.listen(PORT,'0.0.0.0', () => {
   console.log(`WebSocket server listening on port ${PORT}`);
 });
