@@ -50,6 +50,15 @@ type Shape = {
     radiusY :number;
     strokeW ?:number |1
     DBid ?: number
+} | { 
+    type : "line"; 
+    startX : number;
+    startY : number ;
+    x : number ; 
+    y : number ; 
+    strokeW ?: number ; 
+    strokeC ?: string ;
+    DBid ?: number
 }
 
 
@@ -698,7 +707,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 { 
                     cancelLiveDraw = false;
                 }
-                if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"){
+                if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"|| shapeRef.current == "line"){
                 canvas.style.cursor = 'crosshair'
                 }
            
@@ -736,7 +745,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 arrY = [startY];
                 ctx.moveTo(startX ,startY)
             }
+            if(shapeRef.current == "line"){ 
+                ctx.moveTo(arrX , arrY)
+            }
             let index = 0
+            
             if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
             e.preventDefault()  
             // canvas.style.cursor = "drag"
@@ -857,7 +870,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             if(shapeRef.current!="rect"){
                  cancelLiveDraw = true ; 
             }
-        if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil"){
+        if(shapeRef.current == "rect" || shapeRef.current == "circle" || shapeRef.current == "pencil" || shapeRef.current == "line"){
                 canvas.style.cursor = 'default'
         }
         
@@ -951,6 +964,19 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             arrY.length = 0 ; 
             // Redraw()
 
+        }
+        else if(shapeRef.current == "line"){ 
+            let endPointX = mouseX + window.innerWidth/2  - cameraOffset.x; 
+            let endPointY = mouseY + window.innerHeight/2 - cameraOffset.y;
+            shape = { 
+                type : "line" , 
+                startX : startX , 
+                startY : startY ,
+                x : endPointX , 
+                y : endPointY , 
+                strokeW  : strokeRef.current , 
+                strokeC : strokeColorRef.current
+            }
         }
         else if (shapeRef.current == "drag"){ 
             // canvas.style.cursor = "default"
@@ -1249,6 +1275,20 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     ctx.stroke(); 
                     ctx.closePath();
                 
+                }
+                else if(shapeRef.current == "line"){ 
+                    cancelLiveDraw = false ;
+                    Redraw() 
+                    ctx.beginPath(); 
+                    ctx.moveTo(startX , startY)
+                    ctx.lineTo(mouseX + window.innerWidth/2  - cameraOffset.x  , mouseY+ window.innerHeight/2 - cameraOffset.y)
+                    ctx.strokeStyle = strokeColorRef.current;   
+                    ctx.lineWidth = 5;
+                    // ctx.fillStyle=bodyColorRef.current;
+                    ctx.stroke()
+                    console.log("start X of MM " + startX + "start Y" + startY)
+                    console.log("line to of MM X :  " + (mouseX + window.innerWidth/2  - cameraOffset.x) + " Y : " + ( mouseY+ window.innerHeight/2 - cameraOffset.y) )
+                    ctx.closePath()
                 }
                 else if(shapeRef.current == "pencil"){ 
                     // console.log("ArrayX" + arrX)
@@ -1709,12 +1749,20 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.stroke()
                     ctx.closePath()
                 }
-                
-                
+                 // ctx.lineTo(shape.X , shape.Y)    
+            }
+            else if(shape.type == "line"){ 
+                // console.log("yha tk poch gya hu " + JSON.stringify(shape))
+                ctx.beginPath(); 
+                // ctx.moveTo(shape.startX , shape.startY); 
+                // ctx.lineTo(shape.x , shape.y); 
+                ctx.moveTo(shape.startX , shape.startY); 
+                ctx.lineTo(shape.x , shape.y); 
+                ctx.strokeStyle = shape.strokeC ; 
+                ctx.lineWidth = shape.strokeW ; 
+                ctx.stroke() ; 
                
-                
-                // ctx.lineTo(shape.X , shape.Y)
-                
+                ctx.closePath()
             }
             else if(shape.type == "circleRect"){ 
                      shape.radiusY = shape.height / 2; 
