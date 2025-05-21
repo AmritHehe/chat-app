@@ -1,5 +1,5 @@
 export function Select(){ 
     return <>
-    <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000" stroke-width="1.5"><path d="M21 12V5C21 3.89543 20.1046 3 19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"></path><path d="M20.879 16.9176C21.373 17.2216 21.342 17.9606 20.834 18.0186L18.267 18.3096L17.116 20.6216C16.888 21.0806 16.183 20.8556 16.066 20.2876L14.811 14.1716C14.712 13.6916 15.144 13.3896 15.561 13.6466L20.879 16.9176Z" fill="#000000" stroke="#000000" stroke-width="1.5"></path></svg>
+    <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000" strokeWidth="1.5"><path d="M21 12V5C21 3.89543 20.1046 3 19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H12" stroke="#000000" strokeWidth="1.5" strokeLinecap="round"></path><path d="M20.879 16.9176C21.373 17.2216 21.342 17.9606 20.834 18.0186L18.267 18.3096L17.116 20.6216C16.888 21.0806 16.183 20.8556 16.066 20.2876L14.811 14.1716C14.712 13.6916 15.144 13.3896 15.561 13.6466L20.879 16.9176Z" fill="#000000" stroke="#000000" strokeWidth="1.5"></path></svg>
     </>
 }
