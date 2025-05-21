@@ -3,6 +3,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { eventNames } from "process";
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
+import { json } from "stream/consumers";
 
 type Shape = { 
     type: "rect" ; 
@@ -326,13 +327,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
             }
             else if (shape.type == "pencil"){ 
-                console.log("shape " + shape)
+                console.log("shape " + JSON.stringify(shape))
+                console.log("start X and start Y jo aye  , startX " + x + "start Y" + y)
                 let arrayX = shape.X 
                 let arrayY = shape.Y
                 console.log("inside pensil")
                 for(let i = 0 ; i < shape.X.length ; i++){ 
                     
-                    if(x == arrayX[i] || y == arrayY[i] || x == arrayX[i]+1 || x == arrayX[i] -1 || y == arrayY[i] - 1 || y == arrayY[i] + 1){
+                    if((8 >= (Math.abs(arrayX[i] - x))  && 8 >= (Math.abs(arrayY[i] - y)))){
                         return true
                     }
                  }
@@ -1202,7 +1204,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                      ctx.roundRect(startX , startY , width , height , [40]);
                     // console.log("stroke Color ref .current" + strokeColorRef.current)
                     ctx.strokeStyle = strokeColorRef.current      
-                    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
+                    ctx.lineWidth =  Math.trunc(strokeRef.current);
                     ctx.fillStyle=bodyColorRef.current
                     ctx.fill();
 
@@ -1239,7 +1241,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
                     console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
                     ctx.beginPath();
-                    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
+                    ctx.lineWidth =  Math.trunc(strokeRef.current);
                     ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
                     ctx.strokeStyle = strokeColorRef.current
                     ctx.fillStyle=bodyColorRef.current
@@ -1254,7 +1256,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                      ctx.moveTo(arrX.slice(-1)   ,arrY.slice(-1));
                     ctx.lineTo(mouseX  + window.innerWidth/2  - cameraOffset.x , mouseY + window.innerHeight/2 - cameraOffset.y);
                      ctx.strokeStyle = strokeColorRef.current
-                     ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
+                     ctx.lineWidth =  Math.trunc(strokeRef.current);
                     ctx.lineCap = 'round';
                     arrX.push(mouseX + window.innerWidth/2 - cameraOffset.x)
                     arrY.push(mouseY + window.innerHeight/2 - cameraOffset.y)
@@ -1643,7 +1645,7 @@ function LiveDraw(parseShape:any , ctx : CanvasRenderingContext2D , canvas : HTM
     // clearCanvas(parseShape , ctx , canvas  ,1)     
  
     ctx.beginPath();
-    ctx.lineWidth =  Math.trunc(strokeRef.current/cameraZoom);
+    ctx.lineWidth =  Math.trunc(strokeRef.current);
     ctx.strokeStyle = "rgba(255 ,255, 255)";
     ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
     ctx.stroke()
@@ -1669,7 +1671,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 //@ts-ignore
                 ctx.roundRect(shape.x, shape.y , shape.width , shape.height , [40]); 
                 //@ts-ignore
-                ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                ctx.lineWidth =  Math.trunc(shape.strokeW) 
                 //@ts-ignore
                 ctx.strokeStyle = shape.strokeC;
                 //@ts-ignore
@@ -1682,7 +1684,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.beginPath();
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2)
                     //@ts-ignore
-                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    ctx.lineWidth =  Math.trunc(shape.strokeW) 
                     //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
                     //@ts-ignore
@@ -1699,7 +1701,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     ctx.lineCap = "round";
                     //@ts-ignore
                     
-                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) ;
+                    ctx.lineWidth =  Math.trunc(shape.strokeW) ;
                     //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
                     ctx.moveTo(shape.X[i-1] , shape.Y[i-1]);
@@ -1723,7 +1725,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     
                     ctx.beginPath();
                     //@ts-ignore
-                    ctx.lineWidth =  Math.trunc(shape.strokeW/cameraZoom) 
+                    ctx.lineWidth =  Math.trunc(shape.strokeW) 
                     //@ts-ignore
                     ctx.strokeStyle = shape.strokeC;
                     ctx.ellipse(shape.centerX , shape.centerY , Math.abs(shape.radiusX) , Math.abs(shape.radiusY), Math.PI * 2,  0 , Math.PI * 2) 
