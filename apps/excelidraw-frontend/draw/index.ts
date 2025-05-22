@@ -59,6 +59,16 @@ type Shape = {
     strokeW ?: number ; 
     strokeC ?: string ;
     DBid ?: number
+} | { 
+    type : "arrow";
+    startX : number ; 
+    startY : number ; 
+    currentX : number;
+    currentY :number ; 
+    strokeW ?: number ; 
+    strokeC ?: string ;
+    DBid ?: number ; 
+
 }
 
 
@@ -746,10 +756,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 ctx.moveTo(startX ,startY)
             }
             if(shapeRef.current == "line"){ 
-                ctx.moveTo(arrX , arrY)
+                ctx.moveTo(startX , startY)
             }
             let index = 0
-            
+            if(shapeRef.current == "arrow"){ 
+                ctx.moveTo(startX , startY)
+            }
             if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
             e.preventDefault()  
             // canvas.style.cursor = "drag"
@@ -974,6 +986,19 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 startY : startY ,
                 x : endPointX , 
                 y : endPointY , 
+                strokeW  : strokeRef.current , 
+                strokeC : strokeColorRef.current
+            }
+        }
+        else if(shapeRef.current == "arrow"){ 
+            let endPointX = mouseX + window.innerWidth/2  - cameraOffset.x; 
+            let endPointY = mouseY + window.innerHeight/2 - cameraOffset.y;
+            shape = { 
+                type : "arrow" , 
+                startX : startX , 
+                startY : startY ,
+                currentX : endPointX , 
+                currentY : endPointY , 
                 strokeW  : strokeRef.current , 
                 strokeC : strokeColorRef.current
             }
@@ -1289,6 +1314,31 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     console.log("start X of MM " + startX + "start Y" + startY)
                     console.log("line to of MM X :  " + (mouseX + window.innerWidth/2  - cameraOffset.x) + " Y : " + ( mouseY+ window.innerHeight/2 - cameraOffset.y) )
                     ctx.closePath()
+                }
+                else if(shapeRef.current == "arrow"){ 
+                    // cancelLiveDraw = false
+                    Redraw()
+                    let currentX = (mouseX + window.innerWidth/2  - cameraOffset.x ); 
+                    let currentY = (mouseY + window.innerHeight/2 - cameraOffset.y)
+                    ctx.beginPath(); 
+                    ctx.moveTo(startX ,startY)
+                    ctx.lineTo(currentX, currentY)
+                    ctx.lineWidth = strokeRef.current;
+                    ctx.strokeStyle = strokeColorRef.current;
+                    ctx.stroke() ;
+                    const headsize = 25;
+                    const angle = Math.atan2(startY - currentY , startX -currentX); 
+                    let delta = Math.PI / 7 ; 
+                    for(let i = 0 ; i < 2 ; i++){ 
+                        ctx.moveTo(currentX , currentY)
+                        const x = currentX + headsize * Math.cos(angle + delta); 
+                        const y = currentY + headsize * Math.sin(angle + delta); 
+                        ctx.lineTo(x , y)
+                        delta *= -1;
+                    }
+                    ctx.stroke();
+                    // ctx.strokeStyle =- strokeRef.current ;
+
                 }
                 else if(shapeRef.current == "pencil"){ 
                     // console.log("ArrayX" + arrX)
@@ -1762,6 +1812,28 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 ctx.lineWidth = shape.strokeW ; 
                 ctx.stroke() ; 
                
+                ctx.closePath()
+            }
+            else if(shape.type == "arrow"){ 
+                  ctx.beginPath(); 
+                // ctx.moveTo(shape.startX , shape.startY); 
+                // ctx.lineTo(shape.x , shape.y); 
+                ctx.moveTo(shape.startX , shape.startY); 
+                ctx.lineTo(shape.currentX , shape.currentY); 
+                ctx.strokeStyle = shape.strokeC ; 
+                ctx.lineWidth = shape.strokeW ; 
+                ctx.stroke() ; 
+                const headsize = 25;
+                    const angle = Math.atan2(shape.startY - shape.currentY , shape.startX - shape.currentX); 
+                    let delta = Math.PI / 7 ; 
+                    for(let i = 0 ; i < 2 ; i++){ 
+                        ctx.moveTo(shape.currentX , shape.currentY)
+                        const x = shape.currentX + headsize * Math.cos(angle + delta); 
+                        const y = shape.currentY + headsize * Math.sin(angle + delta); 
+                        ctx.lineTo(x , y)
+                        delta *= -1;
+                    }
+                    ctx.stroke();
                 ctx.closePath()
             }
             else if(shape.type == "circleRect"){ 

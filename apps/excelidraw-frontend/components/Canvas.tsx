@@ -77,7 +77,7 @@ export default function Canvas ({roomId , socket} : {
         <div className="static w-screen h-screen" onClick={()=>{setIntroScreen(false) ; localStorage.setItem("IntroScreen" , "false") }}>
         <canvas id="canvas" className={currShape == "pan" ? `cursor-grab active:cursor-grabbing` : currShape =="drag" ? `cursor-move` : `cursor-default`  }  ref={canvasRef} > </canvas> 
         </div>
-        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line")? <div className="absolute left-0 top-20 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
+        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line" || currShape == "arrow")? <div className="absolute left-0 top-20 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
 
         <div className="ml-3 m-1.5 text-sm">
             Stroke
