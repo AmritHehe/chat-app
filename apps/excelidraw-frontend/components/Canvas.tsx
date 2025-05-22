@@ -1,7 +1,7 @@
 // import { initDraw } from "@/draw";
 // import { initDraw } from "@/draw";
 import { initDraw } from "@/draw";
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState , useLayoutEffect } from "react"
 import {Circle} from "@repo/ui/circle"
 import {Rect} from "@repo/ui/rect"
 import {Pencil} from "@repo/ui/pencil" 
@@ -44,6 +44,32 @@ export default function Canvas ({roomId , socket} : {
     const strokeColorRef = useRef(strokeC)
     const [bodyColor , setBodyColor] = useState("#000000")
     const bodyColorRef = useRef(bodyColor)
+    const [showText , setShowText ] = useState(false)
+    const [text , setText] = useState("")
+    const textRef  = useRef<HTMLTextAreaElement>(null)
+    useEffect(() => {
+        const text = textRef.current;
+        if(textRef.current != null){
+            // let adjustedHeight = text.clientHeight; 
+            // adjustedHeight = Math.max(text.scrollHeight , adjustedHeight)
+            // if(adjustedHeight > text.clientHeight){
+            //     text.style.height = adjustedHeight+"px"
+            // }
+            let maxheight = window.innerHeight/2; 
+            console.log("window height " + maxheight)
+            console.log("textbox heifht" + text.offsetHeight)
+            if((text.offsetHeight)<maxheight){
+                text.style.height = text.scrollHeight+"px"; 
+                // text.style.overflowY = "hidden";
+                if(text.offsetHeight < maxheight){
+                text.addEventListener("input" , function(){ 
+                    this.style.height = "auto"; 
+                    this.style.height = this.scrollHeight + "px";
+                })
+            }
+            }
+        }
+    },[ text])
     useEffect(()=> { 
         bodyColorRef.current = bodyColor
     } , [bodyColor])
@@ -61,9 +87,9 @@ export default function Canvas ({roomId , socket} : {
     useEffect(()=> {
         if(canvasRef.current){  
             
-            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef , bodyColorRef)
+            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef , bodyColorRef , textRef )
         }
-    } , [canvasRef ])
+    } , [canvasRef])
     
    useEffect(()=>{
     const hehe =  JSON.parse(localStorage.getItem("IntroScreen"))
@@ -171,6 +197,8 @@ export default function Canvas ({roomId , socket} : {
         <div className="absolute bottom-0 m-4 right-0 bg-purple-300 px-4 py-3 rounded-lg">current Zoom 
             <p id="zoom">100%</p>
         </div>
+
+       {showText ? <textarea ref={textRef} className ="text-4xl text-wrap absolute text-white border-0 focus:outline-none top-999 botto-999 overflow-hidden" value={text} onChange={(e)=>{setText(e.target.value)}}   name="" id=""></textarea>  : <></> }
         { introScreen ?  <div className="static h-100vh w-100vh bg-blue-200">
             <div onClick={()=>{}} className="absolute left-180 items-center justify-center scale-400 px-4 py-3 text-blue-300 rounded-lg ">
             <p className={gamja.className}>Excelidraw</p>
@@ -216,39 +244,39 @@ export default function Canvas ({roomId , socket} : {
                 Erase
             </button> */}
             
-            <button onClick={()=> {setShape("select"); setMenu(false)}} className={ currShape == "select" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("select"); setMenu(false); setShowText(false)}} className={ currShape == "select" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Select */}
                 <Select/>
             </button>
-             <button onClick={()=> {setShape("rect"); setMenu(false)}} className={ currShape == "rect" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+             <button onClick={()=> {setShape("rect"); setMenu(false); setShowText(false)}} className={ currShape == "rect" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Rect */}
                 <Rect/>
             </button>
             
-            <button onClick={()=> {setShape("diamond"); setMenu(false)}} className={ currShape == "diamond" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("diamond"); setMenu(false); setShowText(false)}} className={ currShape == "diamond" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Select */}
                 <Diamond/>
             </button>
-             <button onClick={()=> {setShape("circle"); setMenu(false)}} className={ currShape == "circle" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+             <button onClick={()=> {setShape("circle"); setMenu(false); setShowText(false)}} className={ currShape == "circle" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 <Circle/>
             </button>
-            <button onClick={()=> {setShape("arrow"); setMenu(false)}} className={ currShape == "arrow" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("arrow"); setMenu(false); setShowText(false)}} className={ currShape == "arrow" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Arrow */}
                 <Arrow/>
             </button>
-             <button onClick={()=> {setShape("line"); setMenu(false)}} className={ currShape == "line" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+             <button onClick={()=> {setShape("line"); setMenu(false); setShowText(false)}} className={ currShape == "line" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 <Line/>
             </button>
-            <button onClick={()=> {setShape("pencil"); setMenu(false)}} className={ currShape == "pencil" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("pencil"); setMenu(false); setShowText(false)}} className={ currShape == "pencil" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Pencil */}
                 <Pencil/>
             </button>
-            <button onClick={()=> {setShape("Text"); setMenu(false)}} className={ currShape == "Text" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("text"); setMenu(false) ; setShowText(true)}} className={ currShape == "text" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Select */}
                 {/* <Diamond/> */}
                 <Text/>
             </button>
-            <button onClick={()=> {setShape("eraseDrag"); setMenu(false)}} className={ currShape == "eraseDrag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            <button onClick={()=> {setShape("eraseDrag"); setMenu(false); setShowText(false)}} className={ currShape == "eraseDrag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* EraseDrag
                  */}
                  <Eraser/>

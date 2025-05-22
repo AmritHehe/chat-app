@@ -3,7 +3,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { eventNames } from "process";
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
-import { json } from "stream/consumers";
+import { json, text } from "stream/consumers";
 
 type Shape = { 
     type: "rect" ; 
@@ -69,10 +69,17 @@ type Shape = {
     strokeC ?: string ;
     DBid ?: number ; 
 
+} | { 
+    type : "text"; 
+    text :string ;
+    x : number; 
+    y : number; 
+    strokeC ?: string ;
+    DBid ?:number 
 }
 
 
-export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string> , bodyColorRef : RefObject<string>){
+export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string> , bodyColorRef : RefObject<string> , textRef: RefObject<HTMLTextAreaElement> ){
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     let offset_x :any; 
@@ -280,7 +287,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let selected_shape :any = {}
         let selectedShapeIndex = 0 ;
         let whatToResize : any ;
-        
+        let countclick = 0 ;
+        let textX = 0 ; 
+        let textY = 0 ;
 
         function getEventLocation(e:any)
             {
@@ -762,6 +771,23 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             if(shapeRef.current == "arrow"){ 
                 ctx.moveTo(startX , startY)
             }
+            if(shapeRef.current == "text"){
+                console.log("countclick  " + countclick) 
+                if(countclick == 0){
+                textX = startX ; 
+                textY = startY
+                console.log("yha tk to araha hu")
+                console.log("startX to string" + startX.toString())
+                textRef.current.style.top = `${startY}px`
+                textRef.current.style.left = `${startX}px` ;
+                requestAnimationFrame(()=>{textRef.current.focus()})
+                countclick+=1;
+                }
+                else { 
+                    countclick +=1;
+                    console.log("sabassh sher ")
+                }
+            }
             if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
             e.preventDefault()  
             // canvas.style.cursor = "drag"
@@ -1003,6 +1029,47 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 strokeC : strokeColorRef.current
             }
         }
+        else if(shapeRef.current == "text"){ 
+            if(countclick >= 1)
+            {   
+                let texttosend = textRef.current.value 
+                let x = textX; 
+                let y = textY ;
+                console.log("text ref value" + textRef.current.value)
+                console.log("why I am here")
+                ctx.font = "50px Gamja_Flower";
+                ctx.fillStyle = strokeColorRef.current;
+                ctx.textBaseline = "hanging";
+                ctx.fillText(textRef.current.value , x , y)
+                countclick = 0;
+                if(texttosend!=""){
+                    shape = { 
+                        type : "text" , 
+                        text : texttosend ,
+                        x : x , 
+                        y : y ,
+                        strokeC : strokeColorRef.current
+                    }
+
+                    console.log("after : " + JSON.stringify({existingShapes}))
+                    socket.send(JSON.stringify({
+                        type : "chat",
+                        message : JSON.stringify({
+                            shape
+                        }),
+                        roomId
+                    }))
+
+                }
+                
+                textRef.current.value = ""
+            }
+            else { 
+
+                // countclick = 0 ;
+            }
+            
+        }
         else if (shapeRef.current == "drag"){ 
             // canvas.style.cursor = "default"
             if(!Drag){ 
@@ -1209,7 +1276,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
         
         
-        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" && shapeRef.current != "clear") {
+        if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" && shapeRef.current != "clear" && shapeRef.current != "text") {
             
             console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
@@ -1835,6 +1902,12 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                     }
                     ctx.stroke();
                 ctx.closePath()
+            }
+            else if(shape.type == "text"){ 
+                ctx.font = "50px Gamja_Flower";
+                ctx.fillStyle = shape.strokeC;
+                ctx.textBaseline = "hanging";
+                ctx.fillText(shape.text , shape.x ,shape.y)
             }
             else if(shape.type == "circleRect"){ 
                      shape.radiusY = shape.height / 2; 
