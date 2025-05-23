@@ -4,6 +4,7 @@ import { HTTP_BACKEND } from "@/config"
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { json, text } from "stream/consumers";
+import { Fascinate } from "next/font/google";
 
 type Shape = { 
     type: "rect" ; 
@@ -76,6 +77,15 @@ type Shape = {
     y : number; 
     strokeC ?: string ;
     DBid ?:number 
+} | { 
+    type : "heart" ;
+    startX : number ; 
+    startY : number ; 
+    currentX : number ; 
+    currentY : number ; 
+    strokeW ?: number ; 
+    strokeC ?: string ; 
+    DBid ?: number ; 
 }
 
 
@@ -280,6 +290,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         let startX = 0; 
         let startY = 0;
         let Drag = false; 
+        let select = false;
         let currentShapeIndex :number = 0 
         let databaseId :number ;
         let current_shape :any  ={}
@@ -416,308 +427,132 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 for(let i = 0 ; i < 13 ; ++i){ 
                     // console.log("XXXXX: " + x , " YYYYYY " + y)
                 // if((x == shape_Left && y >  shape_Top && y < shape_Bottom )|| (x==shape_Right && y > shape_Top && y < shape_Bottom)||(y==shape_Top && x<shape_Left && x > shape_Right)||(y==shape_Bottom && x <shape_Left && x > shape_Right)){ 
-                    if((x == shape_Left && y >  shape_Top && y < shape_Bottom )){
+                    if((6 >= Math.abs(shape_Left-x) && y >  shape_Top && y < shape_Bottom )){
                         whatToResize = "left"
                         return true
                     }
-                    else if((x==shape_Right && y > shape_Top && y < shape_Bottom)){   
+                    else if((6>=Math.abs(shape_Right-x) && y > shape_Top && y < shape_Bottom)){   
                         whatToResize = "right"
                         return true; 
                     }
-                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Top-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "top"
                         return true;
                     }
-                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Bottom-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "bottom"
                         return true;
                     }
                 
-                    if(i==1){ 
-                        x+=1 ;
-                        y+=1 ; 
-                    }
-                    else if(i==2){ 
-                        x = oldX;
-                        y = oldY;
-                        x+=2;
-                        y+=2;
-                    }
-                    else if(i==3){ 
-                        x = oldX ; 
-                        y = oldY ; 
-                        x-=1; 
-                        y-=1; 
-                    }
-                    else if(i==4){ 
-                        x= oldX ; 
-                        y = oldY ; 
-                        x-=2; 
-                        y-=2;
-                    }
-                    else if(i==5){ 
-                        x = oldX ; 
-                        x+=1
-                    }
-                    else if(i==6){ 
-                        x = oldX; 
-                        x+=2;
-                    }
-                    else if(i==7){ 
-                        x = oldX ; 
-                        x-=1;
-                    }
-                    else if(i==8){ 
-                        x=oldX ; 
-                        x-=2;
-                    }
-                    else if(i==9){ 
-                        y = oldY ; 
-                        y+=1; 
-                    }
-                    else if(i==10){ 
-                        y=oldY ;
-                        y+=2
-                    }
-                    else if(i==11){ 
-                        y=oldY; 
-                        y-=1;
-                    }
-                    else if(i==12){ 
-                        y=oldY; 
-                        y-=2;
-                    }
                 }
             }
             else if(shape.width > 0 && shape.height > 0){ 
-                for(let i = 0 ; i < 13 ; ++i){ 
-                    if((x == shape_Left && y >  shape_Top && y < shape_Bottom )){
+                    if((6 >= Math.abs(shape_Left-x) && y >  shape_Top && y < shape_Bottom )){
                         whatToResize = "left"
                         return true
                     }
-                    else if((x==shape_Right && y > shape_Top && y < shape_Bottom)){   
+                    else if((6>=Math.abs(shape_Right-x) && y > shape_Top && y < shape_Bottom)){   
                         whatToResize = "right"
                         return true; 
                     }
-                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Top-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "top"
                         return true;
                     }
-                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Bottom-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "bottom"
                         return true;
                     }
-                
-                    if(i==1){ 
-                        x+=1 ;
-                        y+=1 ; 
-                    }
-                    else if(i==2){ 
-                        x = oldX;
-                        y = oldY;
-                        x+=2;
-                        y+=2;
-                    }
-                    else if(i==3){ 
-                        x = oldX ; 
-                        y = oldY ; 
-                        x-=1; 
-                        y-=1; 
-                    }
-                    else if(i==4){ 
-                        x= oldX ; 
-                        y = oldY ; 
-                        x-=2; 
-                        y-=2;
-                    }
-                    else if(i==5){ 
-                        x = oldX ; 
-                        x+=1
-                    }
-                    else if(i==6){ 
-                        x = oldX; 
-                        x+=2;
-                    }
-                    else if(i==7){ 
-                        x = oldX ; 
-                        x-=1;
-                    }
-                    else if(i==8){ 
-                        x=oldX ; 
-                        x-=2;
-                    }
-                    else if(i==9){ 
-                        y = oldY ; 
-                        y+=1; 
-                    }
-                    else if(i==10){ 
-                        y=oldY ;
-                        y+=2
-                    }
-                    else if(i==11){ 
-                        y=oldY; 
-                        y-=1;
-                    }
-                    else if(i==12){ 
-                        y=oldY; 
-                        y-=2;
-                    }
-                }
             }
             else if(shape.width > 0 && shape.height <=0){ 
-                for(let i = 0 ; i < 13 ; ++i){ 
-                    if((x == shape_Left && y >= shape_Top && y <= shape_Bottom )){
+              
+                    if((6 >= Math.abs(shape_Left-x) && y >= shape_Top && y <= shape_Bottom )){
                         whatToResize = "left"
                         return true
                     }
-                    else if((x==shape_Right && y >= shape_Top && y <= shape_Bottom)){   
+                    else if((6>=Math.abs(shape_Right-x) && y >= shape_Top && y <= shape_Bottom)){   
                         whatToResize = "right"
                         return true; 
                     }
-                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                    else if(6>=Math.abs(shape_Top-y) && x >= shape_Left && x <= shape_Right){ 
                         whatToResize = "top"
                         return true;
                     }
-                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Bottom-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "bottom"
                         return true;
                     }
-                
-                    if(i==1){ 
-                        x+=1 ;
-                        y+=1 ; 
-                    }
-                    else if(i==2){ 
-                        x = oldX;
-                        y = oldY;
-                        x+=2;
-                        y+=2;
-                    }
-                    else if(i==3){ 
-                        x = oldX ; 
-                        y = oldY ; 
-                        x-=1; 
-                        y-=1; 
-                    }
-                    else if(i==4){ 
-                        x= oldX ; 
-                        y = oldY ; 
-                        x-=2; 
-                        y-=2;
-                    }
-                    else if(i==5){ 
-                        x = oldX ; 
-                        x+=1
-                    }
-                    else if(i==6){ 
-                        x = oldX; 
-                        x+=2;
-                    }
-                    else if(i==7){ 
-                        x = oldX ; 
-                        x-=1;
-                    }
-                    else if(i==8){ 
-                        x=oldX ; 
-                        x-=2;
-                    }
-                    else if(i==9){ 
-                        y = oldY ; 
-                        y+=1; 
-                    }
-                    else if(i==10){ 
-                        y=oldY ;
-                        y+=2
-                    }
-                    else if(i==11){ 
-                        y=oldY; 
-                        y-=1;
-                    }
-                    else if(i==12){ 
-                        y=oldY; 
-                        y-=2;
-                    }
-                }
             }
             else if(shape.width < 0 && shape.height < 0){
-                for(let i = 0 ; i < 13 ; ++i){ 
                     // console.log("XXXXX: " + x , " YYYYYY " + y)
                 // if((x == shape_Left && y >  shape_Top && y < shape_Bottom )|| (x==shape_Right && y > shape_Top && y < shape_Bottom)||(y==shape_Top && x<shape_Left && x > shape_Right)||(y==shape_Bottom && x <shape_Left && x > shape_Right)){ 
-                    if((x == shape_Left && y >=  shape_Top && y <= shape_Bottom )){
+                    if((6 >= Math.abs(shape_Left-x) && y >=  shape_Top && y <= shape_Bottom )){
                         whatToResize = "left"
                         return true
                     }
-                    else if((x==shape_Right && y >= shape_Top && y  <= shape_Bottom)){   
+                    else if(6>=Math.abs(shape_Right-x) && y >= shape_Top && y  <= shape_Bottom){   
                         whatToResize = "right"
                         return true; 
                     }
-                    else if((y==shape_Top && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Top-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "top"
                         return true;
                     }
-                    else if((y==shape_Bottom && x >= shape_Left && x <= shape_Right)){ 
+                    else if((6>=Math.abs(shape_Bottom-y) && x >= shape_Left && x <= shape_Right)){ 
                         whatToResize = "bottom"
                         return true;
                     }
-                
-                    if(i==1){ 
-                        x+=1 ;
-                        y+=1 ; 
-                    }
-                    else if(i==2){ 
-                        x = oldX;
-                        y = oldY;
-                        x+=2;
-                        y+=2;
-                    }
-                    else if(i==3){ 
-                        x = oldX ; 
-                        y = oldY ; 
-                        x-=1; 
-                        y-=1; 
-                    }
-                    else if(i==4){ 
-                        x= oldX ; 
-                        y = oldY ; 
-                        x-=2; 
-                        y-=2;
-                    }
-                    else if(i==5){ 
-                        x = oldX ; 
-                        x+=1
-                    }
-                    else if(i==6){ 
-                        x = oldX; 
-                        x+=2;
-                    }
-                    else if(i==7){ 
-                        x = oldX ; 
-                        x-=1;
-                    }
-                    else if(i==8){ 
-                        x=oldX ; 
-                        x-=2;
-                    }
-                    else if(i==9){ 
-                        y = oldY ; 
-                        y+=1; 
-                    }
-                    else if(i==10){ 
-                        y=oldY ;
-                        y+=2
-                    }
-                    else if(i==11){ 
-                        y=oldY; 
-                        y-=1;
-                    }
-                    else if(i==12){ 
-                        y=oldY; 
-                        y-=2;
-                    }
-                }
             }
             return false ;
         }
+        canvas.addEventListener("mousemove" , (e) => { 
+            if(!clicked){
+                if(shapeRef.current == "select"){ 
+                    console.log("hello brosaki from here")
+                    let currentX = ((e.clientX - window.innerWidth / 2) / cameraZoom + window.innerWidth/2 - cameraOffset.x) ;
+                    let currentY = ((e.clientY - window.innerHeight/ 2) / cameraZoom + window.innerHeight/2 - cameraOffset.y) ; 
+                    let index = 0 ;
+                    for(let shape of existingShapes){
+                        
+                        if(is_mouse_in_border(currentX , currentY , shape)){
+                            if(whatToResize == "left" || whatToResize =="right"){ 
+                                canvas.style.cursor = 'w-resize'
+                                select = true;
+                                Drag = false ;
+                                selectedShapeIndex = index ; 
+                                selected_shape = shape;
+                                return;
+                            } 
+                            else if(whatToResize == "top" || whatToResize == "bottom"){
+                                canvas.style.cursor = 'n-resize'
+                                select = true ;
+                                Drag = false ; 
+                                selectedShapeIndex = index ; 
+                                selected_shape = shape;
+                                return;
+                            }
+                        }
+                        else if(is_mouse_in_shape(currentX , currentY , shape)){ 
+                            canvas.style.cursor = 'move'
+                            Drag = true;
+                            select = false;
+                            currentShapeIndex = index;
+                            databaseId = shape.DBid;
+                            return;
+                        }
+                        else { 
+                            select = false ;
+                            Drag = false;
+                            canvas.style.cursor = 'default'
+                            // return;
+                            // continue;
+
+                        }
+                        index++;
+                    }
+                }
+            }
+        })
         canvas.addEventListener("mousedown" , (e) =>{
                 hehe = false
             // selected_shape = {}
@@ -821,68 +656,68 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             }
 
-            if(shapeRef.current == "select"){ 
-                console.log("hello from select")
-                e.preventDefault()
-                for(let i = 0 ; i <  existingShapes.length ; i++){ 
-                    let shape = existingShapes[i]
-                    if(shape.type == "rect"){ 
-                        if((is_mouse_in_border(startX , startY , shape))){
-                            console.log("yes mouse in border sir ! ") 
-                            selectedShapeIndex = i ; 
-                            selected_shape = shape;
-                            console.log("whatToResixe: "+ whatToResize)
-                            return ; 
-                        }
-                        else { 
-                            continue;
-                        }
-                    }
-                    if(shape.type == "circle"){ 
-                        let shapeRadiusX = Math.trunc(shape.radiusX)
-                        let shapeRadiusY = Math.trunc(shape.radiusY)
-                        let shapeCircleX = Math.trunc(shape.centerX - shapeRadiusX); 
-                        let shapeCircleY = Math.trunc(shape.centerY - shapeRadiusY)
-                        // console.log("int of shape Radius" + shapeRadius)
-                        let circleRect :Shape = {
-                            type : "circleRect", 
-                            x : shapeCircleX , 
-                            y : shapeCircleY, 
-                            height : shapeRadiusY*2 , 
-                            width : shapeRadiusX*2 ,
-                            radiusX  : shapeRadiusX ,
-                            radiusY :  shapeRadiusY ,
-                            centerX : shape.centerX , 
-                            centerY : shape.centerY ,
-                            DBid : shape.DBid
-                        };  
-                        // ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
-                        console.log("circleRect"+ JSON.stringify(circleRect))
-                        console.log("startX " + startX , "startY " + startY)
-                        if(is_mouse_in_border(startX , startY , circleRect)){ 
-                            console.log("wow it works")
-                             selected_shape = circleRect;
-                            // selectedShapeIndex = i ; 
-                            console.log("old exisiting shape " + JSON.stringify(existingShapes[i]))
-                            // existingShapes.splice(i ,1); 
-                            existingShapes[i] = circleRect
-                            console.log("new exisiting shapes " + JSON.stringify(existingShapes[i]))
-                            //  existingShapes.push(circleRect)
-                             ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
-                             return;
-                        }
-                        else{ 
-                            continue;
-                        }
-                    }
-                    if(shape.type == "pencil"){ 
-                        if(is_mouse_in_shape(startX , startY , shape)){ 
-                            console.log("yessir in Shape ")
+            // if(shapeRef.current == "select"){ 
+            //     console.log("hello from select")
+            //     e.preventDefault()
+            //     for(let i = 0 ; i <  existingShapes.length ; i++){ 
+            //         let shape = existingShapes[i]
+            //         if(shape.type == "rect"){ 
+            //             if((is_mouse_in_border(startX , startY , shape))){
+            //                 console.log("yes mouse in border sir ! ") 
+            //                 selectedShapeIndex = i ; 
+            //                 selected_shape = shape;
+            //                 console.log("whatToResixe: "+ whatToResize)
+            //                 return ; 
+            //             }
+            //             else { 
+            //                 continue;
+            //             }
+            //         }
+            //         if(shape.type == "circle"){ 
+            //             let shapeRadiusX = Math.trunc(shape.radiusX)
+            //             let shapeRadiusY = Math.trunc(shape.radiusY)
+            //             let shapeCircleX = Math.trunc(shape.centerX - shapeRadiusX); 
+            //             let shapeCircleY = Math.trunc(shape.centerY - shapeRadiusY)
+            //             // console.log("int of shape Radius" + shapeRadius)
+            //             let circleRect :Shape = {
+            //                 type : "circleRect", 
+            //                 x : shapeCircleX , 
+            //                 y : shapeCircleY, 
+            //                 height : shapeRadiusY*2 , 
+            //                 width : shapeRadiusX*2 ,
+            //                 radiusX  : shapeRadiusX ,
+            //                 radiusY :  shapeRadiusY ,
+            //                 centerX : shape.centerX , 
+            //                 centerY : shape.centerY ,
+            //                 DBid : shape.DBid
+            //             };  
+            //             // ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
+            //             console.log("circleRect"+ JSON.stringify(circleRect))
+            //             console.log("startX " + startX , "startY " + startY)
+            //             if(is_mouse_in_border(startX , startY , circleRect)){ 
+            //                 console.log("wow it works")
+            //                  selected_shape = circleRect;
+            //                 // selectedShapeIndex = i ; 
+            //                 console.log("old exisiting shape " + JSON.stringify(existingShapes[i]))
+            //                 // existingShapes.splice(i ,1); 
+            //                 existingShapes[i] = circleRect
+            //                 console.log("new exisiting shapes " + JSON.stringify(existingShapes[i]))
+            //                 //  existingShapes.push(circleRect)
+            //                  ctx.strokeRect(circleRect.x , circleRect.y , circleRect.width , circleRect.height)
+            //                  return;
+            //             }
+            //             else{ 
+            //                 continue;
+            //             }
+            //         }
+            //         if(shape.type == "pencil"){ 
+            //             if(is_mouse_in_shape(startX , startY , shape)){ 
+            //                 console.log("yessir in Shape ")
 
-                        }
-                    }
-                }
-            }
+            //             }
+            //         }
+            //     }
+            // }
             if(shapeRef.current == "pan"){ 
                 dragStart.x = getEventLocation(e).x/cameraZoom - cameraOffset.x; 
                 dragStart.y = getEventLocation(e).y/cameraZoom -cameraOffset.y
@@ -1029,10 +864,29 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 strokeC : strokeColorRef.current
             }
         }
+        else if(shapeRef.current == "heart"){ 
+            let endPointX = mouseX + window.innerWidth/2  - cameraOffset.x; 
+            let endPointY = mouseY + window.innerHeight/2 - cameraOffset.y;
+            shape = { 
+                type : "heart" , 
+                startX : startX , 
+                startY : startY ,
+                currentX : endPointX , 
+                currentY : endPointY , 
+                strokeW  : strokeRef.current , 
+                strokeC : strokeColorRef.current
+            }
+        }
         else if(shapeRef.current == "text"){ 
             if(countclick >= 1)
             {   
-                let texttosend = textRef.current.value 
+                let texttosend = textRef.current.value
+                let textW = ctx.measureText(texttosend).width; 
+                let totallines = Math.ceil(textW/(textRef.current.offsetWidth)) + 1
+                console.log("textref ki width" + textRef.current.offsetWidth)
+
+                console.log("totalLines " + totallines)
+                console.log("text W" + textW) 
                 let x = textX; 
                 let y = textY ;
                 console.log("text ref value" + textRef.current.value)
@@ -1040,7 +894,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 ctx.font = "50px Gamja_Flower";
                 ctx.fillStyle = strokeColorRef.current;
                 ctx.textBaseline = "hanging";
+                // let textH = ctx.measureText(texttosend).emHeightAscent
                 ctx.fillText(textRef.current.value , x , y)
+                // ctx.fillText(textRef.current.value , x , y)
                 countclick = 0;
                 if(texttosend!=""){
                     shape = { 
@@ -1070,7 +926,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
             
         }
-        else if (shapeRef.current == "drag"){ 
+        else if (shapeRef.current == "drag" || Drag == true){ 
             // canvas.style.cursor = "default"
             if(!Drag){ 
                 return ;
@@ -1200,7 +1056,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // clearCanvas(existingShapes , canvas , ctx)
             Redraw()
         }
-        else if(shapeRef.current == "select"){ 
+        else if(shapeRef.current == "select" && select == true){ 
             console.log("sellected shape "+  JSON.stringify(selected_shape))
             if(selected_shape.type != "rect" && selected_shape.type != "circleRect"){ 
                 console.log("yhi se return hogya ")
@@ -1422,7 +1278,51 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     ctx.closePath();
                     
                 }
-                else if(shapeRef.current  == "drag"){ 
+                else if(shapeRef.current == "heart"){ 
+                    let x = startX ; 
+                    let y = startY ;
+                    let currentX = mouseX  + window.innerWidth/2  - cameraOffset.x; 
+                    let currentY = mouseY + window.innerHeight/2 - cameraOffset.y ;
+                    let width = currentX  - x ; 
+                    let height = currentY - y ;
+                    Redraw()
+                    ctx.beginPath();
+                    ctx.lineWidth =  Math.trunc(strokeRef.current);
+                    let topCurveHeight = height * 0.3;
+                    ctx.moveTo(x, y + topCurveHeight);
+                    // top left curve
+                    ctx.bezierCurveTo(
+                        x, y, 
+                        x - width / 2, y, 
+                        x - width / 2, y + topCurveHeight
+                    );
+
+                    // bottom left curve
+                    ctx.bezierCurveTo(
+                        x - width / 2, y + (height + topCurveHeight) / 2, 
+                        x, y + (height + topCurveHeight) / 2, 
+                        x, y + height
+                    );
+
+                    // bottom right curve
+                    ctx.bezierCurveTo(
+                        x, y + (height + topCurveHeight) / 2, 
+                        x + width / 2, y + (height + topCurveHeight) / 2, 
+                        x + width / 2, y + topCurveHeight
+                    );
+
+                    // top right curve
+                    ctx.bezierCurveTo(
+                        x + width / 2, y, 
+                        x, y, 
+                        x, y + topCurveHeight
+                    );
+
+                    ctx.closePath();
+                    ctx.fillStyle = strokeColorRef.current;
+                    ctx.stroke();
+                }
+                else if(shapeRef.current  == "drag"|| Drag == true){ 
                     if(!Drag) { 
                         return ; 
 
@@ -1472,7 +1372,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                     }
                 }
-                else if(shapeRef.current == "select"){
+                else if(shapeRef.current == "select" && select == true){
                     // cancelRedraw= false;
                     console.log("hello from mouse move ")
                     console.log("selected shape"+ JSON.stringify(selected_shape))
@@ -1908,6 +1808,51 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 ctx.fillStyle = shape.strokeC;
                 ctx.textBaseline = "hanging";
                 ctx.fillText(shape.text , shape.x ,shape.y)
+            }
+            else if(shape.type == "heart"){ 
+                let x = shape.startX ; 
+                let y = shape.startY ;
+                let currentX =shape.currentX
+                let currentY = shape.currentY ;
+                let width = currentX  - x ; 
+                let height = currentY - y ;
+                ctx.beginPath();
+                ctx.lineWidth =  Math.trunc(shape.strokeW);
+                let topCurveHeight = height * 0.3;
+                ctx.moveTo(x, y + topCurveHeight);
+                // top left curve
+                ctx.bezierCurveTo(
+                    x, y, 
+                    x - width / 2, y, 
+                    x - width / 2, y + topCurveHeight
+                );
+
+                // bottom left curve
+                ctx.bezierCurveTo(
+                    x - width / 2, y + (height + topCurveHeight) / 2, 
+                    x, y + (height + topCurveHeight) / 2, 
+                    x, y + height
+                );
+
+                // bottom right curve
+                ctx.bezierCurveTo(
+                    x, y + (height + topCurveHeight) / 2, 
+                    x + width / 2, y + (height + topCurveHeight) / 2, 
+                    x + width / 2, y + topCurveHeight
+                );
+
+                // top right curve
+                ctx.bezierCurveTo(
+                    x + width / 2, y, 
+                    x, y, 
+                    x, y + topCurveHeight
+                );
+
+                ctx.closePath();
+                ctx.fillStyle = shape.strokeC;
+                ctx.stroke();
+
+
             }
             else if(shape.type == "circleRect"){ 
                      shape.radiusY = shape.height / 2; 

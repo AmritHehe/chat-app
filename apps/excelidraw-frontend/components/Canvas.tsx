@@ -281,6 +281,11 @@ export default function Canvas ({roomId , socket} : {
                  */}
                  <Eraser/>
             </button>
+            <button onClick={()=> {setShape("heart"); setMenu(false); setShowText(false)}} className={ currShape == "heart" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+                {/* EraseDrag
+                 */}
+                 Heart
+            </button>
             
             
         </div>
