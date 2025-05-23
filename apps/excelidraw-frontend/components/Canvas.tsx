@@ -1,7 +1,7 @@
 // import { initDraw } from "@/draw";
 // import { initDraw } from "@/draw";
 import { initDraw } from "@/draw";
-import { useEffect, useRef, useState , useLayoutEffect } from "react"
+import { useEffect, useRef, useState  } from "react"
 import {Circle} from "@repo/ui/circle"
 import {Rect} from "@repo/ui/rect"
 import {Pencil} from "@repo/ui/pencil" 
@@ -55,7 +55,7 @@ export default function Canvas ({roomId , socket} : {
             // if(adjustedHeight > text.clientHeight){
             //     text.style.height = adjustedHeight+"px"
             // }
-            let maxheight = window.innerHeight/2; 
+            const maxheight = window.innerHeight/2; 
             console.log("window height " + maxheight)
             console.log("textbox heifht" + text.offsetHeight)
             if((text.offsetHeight)<maxheight){
@@ -103,7 +103,7 @@ export default function Canvas ({roomId , socket} : {
         <div className="static w-screen h-screen" onClick={()=>{setIntroScreen(false) ; localStorage.setItem("IntroScreen" , "false") }}>
         <canvas id="canvas" className={currShape == "pan" ? `cursor-grab active:cursor-grabbing` : currShape =="drag" ? `cursor-move` : `cursor-default`  }  ref={canvasRef} > </canvas> 
         </div>
-        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line" || currShape == "arrow")? <div className="absolute left-0 top-20 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
+        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line" || currShape == "arrow"|| currShape == "heart")? <div className="absolute left-0 top-20 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
 
         <div className="ml-3 m-1.5 text-sm">
             Stroke

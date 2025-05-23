@@ -1287,6 +1287,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     let height = currentY - y ;
                     Redraw()
                     ctx.beginPath();
+                    ctx.fillStyle = strokeColorRef.current;
                     ctx.lineWidth =  Math.trunc(strokeRef.current);
                     let topCurveHeight = height * 0.3;
                     ctx.moveTo(x, y + topCurveHeight);
@@ -1319,7 +1320,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     );
 
                     ctx.closePath();
-                    ctx.fillStyle = strokeColorRef.current;
+                  
                     ctx.stroke();
                 }
                 else if(shapeRef.current  == "drag"|| Drag == true){ 
