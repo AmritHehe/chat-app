@@ -6,7 +6,7 @@ import {Circle} from "@repo/ui/circle"
 import {Rect} from "@repo/ui/rect"
 import {Pencil} from "@repo/ui/pencil" 
 import { Hand } from "@repo/ui/hand";
-import { Drag } from "@repo/ui/drag";
+// import { Drag } from "@repo/ui/drag";
 import { Select } from "@repo/ui/select";
 import {Eraser} from "@repo/ui/eraser"
 import {Arrow} from "@repo/ui/arrow"
