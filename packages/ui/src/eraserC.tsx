@@ -1,0 +1,5 @@
+export function EraserCursor(){ 
+    return <>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#FFF" stroke="#000" strokeWidth="0.25"></circle></svg>
+    </>
+}

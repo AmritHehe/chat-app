@@ -613,8 +613,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 textY = startY
                 console.log("yha tk to araha hu")
                 console.log("startX to string" + startX.toString())
-                textRef.current.style.top = `${startY}px`
-                textRef.current.style.left = `${startX}px` ;
+                textRef.current.style.top = `${e.clientY}px`
+                textRef.current.style.left = `${e.clientX}px` ;
                 requestAnimationFrame(()=>{textRef.current.focus()})
                 countclick+=1;
                 }
@@ -952,6 +952,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     y: current_shape.y , 
                     width :current_shape.width, 
                     height : current_shape.height,
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
+                    Fill :current_shape.Fill ,
                     DBid : current_shape.DBid
 
                 }
@@ -963,6 +966,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     radiusY :  current_shape.radiusY,
                     centerX : current_shape.centerX , 
                     centerY : current_shape.centerY ,
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
+                    Fill :current_shape.Fill ,
                     DBid : current_shape.DBid
                 }
             }
@@ -971,6 +977,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     type : "pencil" , 
                     X : current_shape.X , 
                     Y : current_shape.Y ,
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
                     DBid : current_shape.DBid
                 }
             }

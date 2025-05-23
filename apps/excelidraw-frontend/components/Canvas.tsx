@@ -11,10 +11,14 @@ import { Select } from "@repo/ui/select";
 import {Eraser} from "@repo/ui/eraser"
 import {Arrow} from "@repo/ui/arrow"
 import {Line} from "@repo/ui/line"
-import {Diamond} from "@repo/ui/dimond"
+// import {Diamond} from "@repo/ui/dimond"
 import {Text} from "@repo/ui/Text"
 import {Share} from "@repo/ui/share"
+import {Transparent} from "@repo/ui/transparent"
+import {Heart} from "@repo/ui/heart"
 import {Gamja_Flower} from "next/font/google"
+// import { EraserCursor } from "@repo/ui/eraserC";
+// import { url } from "inspector";
 // import {Kirang_Haerang} from "next/font/google" 
 // import {Darrow} from "@repo/ui/Darrow"
 const gamja = Gamja_Flower({
@@ -40,9 +44,9 @@ export default function Canvas ({roomId , socket} : {
     const [menu , setMenu] = useState(false)
     const [introScreen , setIntroScreen] = useState(true)
     const [strokeW , setStrokeW] = useState(1)
-    const [strokeC , setStrokeC] = useState("#A4CAFE")
+    const [strokeC , setStrokeC] = useState("#FFFFFFF")
     const strokeColorRef = useRef(strokeC)
-    const [bodyColor , setBodyColor] = useState("#000000")
+    const [bodyColor , setBodyColor] = useState("rgba(255, 0, 0, 0)")
     const bodyColorRef = useRef(bodyColor)
     const [showText , setShowText ] = useState(false)
     const [text , setText] = useState("")
@@ -100,10 +104,10 @@ export default function Canvas ({roomId , socket} : {
    },[])
     return <>
     <div className="flex items-center justify-center">
-        <div className="static w-screen h-screen" onClick={()=>{setIntroScreen(false) ; localStorage.setItem("IntroScreen" , "false") }}>
+        <div className="static w-screen h-screen" onClick={()=>{setIntroScreen(false) ; localStorage.setItem("IntroScreen" , "true") }}>
         <canvas id="canvas" className={currShape == "pan" ? `cursor-grab active:cursor-grabbing` : currShape =="drag" ? `cursor-move` : `cursor-default`  }  ref={canvasRef} > </canvas> 
         </div>
-        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line" || currShape == "arrow"|| currShape == "heart")? <div className="absolute left-0 top-20 m-5 min-w-1/6 bg-zinc-900 rounded-md text-white p-2 max-w-1/6">
+        {(currShape == "rect" || currShape == "circle" || currShape == "diamond" || currShape == "pencil" || currShape == "line" || currShape == "arrow"|| currShape == "heart")? <div className="absolute left-0 top-20 m-5 min-w-1/7 bg-zinc-900 rounded-md text-white p-2 max-w-1/7">
 
         <div className="ml-3 m-1.5 text-sm">
             Stroke
@@ -121,7 +125,7 @@ export default function Canvas ({roomId , socket} : {
             Background
         </div>
         <div className="flex  justify-center">
-            <button onClick={()=>{setBodyColor("rgba(255, 0, 0, 0)")}} className="bg-white rounded-lg w-8 h-8 p-1 m-1"> Null </button>
+            <button onClick={()=>{setBodyColor("rgba(255, 0, 0, 0)")}} className=" rounded-lg w-8 h-8 p-1 m-1"> <Transparent/> </button>
             <button onClick={()=>{setBodyColor("#FBD5D5")}} className="bg-red-200 rounded-lg p-1 w-8 h-8 m-1 text-rose-400">  </button>
             <button onClick={()=>{setBodyColor("#84E1BC")}} className="bg-green-300 rounded-lg p-1 m-1 w-8 h-8 text-green-500">  </button>
             <button onClick={()=>{setBodyColor("#C3DDFD")}} className="bg-blue-200 rounded-lg p-1 m-1 w-8 h-8 text-sky-400"> </button>
@@ -232,10 +236,10 @@ export default function Canvas ({roomId , socket} : {
            <div className="absolute top-0 px-4 m-4 rounded-lg bg-white invert">
             
            
-            <button onClick={()=> {setShape("drag"); setMenu(false)}} className={ currShape == "drag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+            {/* <button onClick={()=> {setShape("drag"); setMenu(false)}} className={ currShape == "drag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Drag */}
-                <Drag/>
-            </button>
+                {/* <Drag/> */}
+            {/* </button>  */}
             <button onClick={()=> {setShape("pan") ; setMenu(false)}}  className={ currShape == "pan" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 {/* Pan */}
                 <Hand/>
@@ -252,11 +256,15 @@ export default function Canvas ({roomId , socket} : {
                 {/* Rect */}
                 <Rect/>
             </button>
-            
-            <button onClick={()=> {setShape("diamond"); setMenu(false); setShowText(false)}} className={ currShape == "diamond" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
-                {/* Select */}
-                <Diamond/>
+            <button onClick={()=> {setShape("heart"); setMenu(false); setShowText(false)}} className={ currShape == "heart" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+                {/* EraseDrag
+                 */}
+                 <Heart/>
             </button>
+            {/* <button onClick={()=> {setShape("diamond"); setMenu(false); setShowText(false)}} className={ currShape == "diamond" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+                {/* Select */}
+                {/* <Diamond/> */}
+            {/* </button> */} 
              <button onClick={()=> {setShape("circle"); setMenu(false); setShowText(false)}} className={ currShape == "circle" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
                 <Circle/>
             </button>
@@ -281,11 +289,7 @@ export default function Canvas ({roomId , socket} : {
                  */}
                  <Eraser/>
             </button>
-            <button onClick={()=> {setShape("heart"); setMenu(false); setShowText(false)}} className={ currShape == "heart" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
-                {/* EraseDrag
-                 */}
-                 Heart
-            </button>
+            
             
             
         </div>
