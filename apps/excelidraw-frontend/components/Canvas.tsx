@@ -1,7 +1,7 @@
 // import { initDraw } from "@/draw";
 // import { initDraw } from "@/draw";
 import { initDraw } from "@/draw";
-import { useEffect, useRef, useState  } from "react"
+import { useEffect, useRef, useState , useCallback } from "react"
 import {Circle} from "@repo/ui/circle"
 import {Rect} from "@repo/ui/rect"
 import {Pencil} from "@repo/ui/pencil" 
@@ -51,8 +51,9 @@ export default function Canvas ({roomId , socket} : {
     const [showText , setShowText ] = useState(false)
     const [text , setText] = useState("")
     const textRef  = useRef<HTMLTextAreaElement>(null)
+    const [zoom , setZoom] = useState<number>(1)
     useEffect(() => {
-        const text = textRef.current;
+        const textt = textRef.current;
         if(textRef.current != null){
             // let adjustedHeight = text.clientHeight; 
             // adjustedHeight = Math.max(text.scrollHeight , adjustedHeight)
@@ -60,13 +61,13 @@ export default function Canvas ({roomId , socket} : {
             //     text.style.height = adjustedHeight+"px"
             // }
             const maxheight = window.innerHeight/2; 
-            console.log("window height " + maxheight)
-            console.log("textbox heifht" + text.offsetHeight)
-            if((text.offsetHeight)<maxheight){
-                text.style.height = text.scrollHeight+"px"; 
+            // console.log("window height " + maxheight)
+            // console.log("textbox heifht" + textt.offsetHeight)
+            if((textt.offsetHeight)<maxheight){
+                textt.style.height = textt.scrollHeight+"px"; 
                 // text.style.overflowY = "hidden";
-                if(text.offsetHeight < maxheight){
-                text.addEventListener("input" , function(){ 
+                if(textt.offsetHeight < maxheight){
+                textt.addEventListener("input" , function(){ 
                     this.style.height = "auto"; 
                     this.style.height = this.scrollHeight + "px";
                 })
@@ -87,14 +88,25 @@ export default function Canvas ({roomId , socket} : {
     useEffect(()=>{
         shapeRef.current = currShape;
     },[currShape])
-    
+    useEffect(()=> { }, [window.onscroll])
     useEffect(()=> {
         if(canvasRef.current){  
             
-            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef , bodyColorRef , textRef )
+            initDraw(canvasRef.current ,roomId , socket ,shapeRef ,strokeRef , strokeColorRef , bodyColorRef , textRef , zoom , gatedSetKeywords , setText)
         }
     } , [canvasRef])
-    
+    useEffect(()=> {gatedSetKeywords(1)},[])
+    const gatedSetKeywords = useCallback((value) => {
+        if (typeof value !== 'number') {
+            console.error('wow, you wrote another bug!');
+            return;
+        }
+        let percentValue = value*100;
+        let hehe = parseFloat(percentValue.toFixed(5))
+        console.log(hehe)
+        setZoom(hehe);
+        }, []);
+   
    useEffect(()=>{
     const hehe =  JSON.parse(localStorage.getItem("IntroScreen"))
     console.log("hehehehe"  +JSON.stringify(hehe))
@@ -199,10 +211,10 @@ export default function Canvas ({roomId , socket} : {
         <div onClick={()=>{}} className="absolute top-0 m-4 right-0 bg-purple-400 px-4 py-3  rounded-lg">Share <Share/></div>
         <div onClick={()=>{setMenu(!menu)}} className="absolute top-0 m-4 left-0 bg-zinc-800 px-4 py-3 text-white rounded-lg">Menu</div>
         <div className="absolute bottom-0 m-4 right-0 bg-purple-300 px-4 py-3 rounded-lg">current Zoom 
-            <p id="zoom">100%</p>
+            <p  id="zoom">{zoom+'%'}</p>
         </div>
 
-       {showText ? <textarea ref={textRef} className ="text-4xl text-wrap absolute text-white border-0 focus:outline-none top-999 botto-999 overflow-hidden" value={text} onChange={(e)=>{setText(e.target.value)}}   name="" id=""></textarea>  : <></> }
+       {showText ? <textarea ref={textRef} className ="text-3xl h-10 font-serif resize-none text-wrap absolute text-white border-0 focus:outline-none top-999 botto-999 overflow-hidden" value={text} onChange={(e)=>{setText(e.target.value)}}   name="" id=""></textarea>  : <></> }
         { introScreen ?  <div className="static h-100vh w-100vh bg-blue-200">
             <div onClick={()=>{}} className="absolute left-180 items-center justify-center scale-400 px-4 py-3 text-blue-300 rounded-lg ">
             <p className={gamja.className}>Excelidraw</p>

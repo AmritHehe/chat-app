@@ -90,7 +90,7 @@ type Shape = {
 }
 
 
-export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string> , bodyColorRef : RefObject<string> , textRef: RefObject<HTMLTextAreaElement> ){
+export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , socket : WebSocket  ,shapeRef:RefObject<string> , strokeRef:RefObject<number> , strokeColorRef : RefObject<string> , bodyColorRef : RefObject<string> , textRef: RefObject<HTMLTextAreaElement> , zoom:number , setZoom: any , setText : any){
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     let offset_x :any; 
@@ -107,7 +107,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     
     let cameraOffset = { x:offset_x, y: offset_y};
     
-    let cameraZoom = 1 
+    let cameraZoom = zoom 
     let MAX_ZOOM = 5 
     let MIN_ZOOM = 0.1
     let ctx = canvas.getContext("2d"); 
@@ -924,7 +924,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         text : texttosend ,
                         x : x , 
                         y : y ,
-                        strokeC : strokeColorRef.current
+                        strokeC : "#FFFFFF"
                     }
 
                     console.log("after : " + JSON.stringify({existingShapes}))
@@ -938,7 +938,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
                 }
                 
-                textRef.current.value = ""
+                setText("")
             }
             else { 
 
@@ -1690,9 +1690,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             if(!clicked){ 
                 if(zoomAmount){ 
                     cameraZoom += zoomAmount
+                    setZoom(cameraZoom)
                 }
                 cameraZoom = Math.min(cameraZoom , MAX_ZOOM)
+                setZoom(cameraZoom)
                 cameraZoom = Math.max(cameraZoom , MIN_ZOOM)
+                setZoom(cameraZoom)
                 Redraw()
                 //@ts-ignore
                 fixZoomInLive(ctx, canvas , cameraZoom , cameraOffset)
