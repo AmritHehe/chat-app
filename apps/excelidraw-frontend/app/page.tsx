@@ -6,7 +6,7 @@ import Header from '../components/Header';
 import DoodleButton from '../components/DoodleButton';
 import DoodleIcon from '../components/DoodleIcon';
 import Link from "next/link";
-import { GitHubLogoIcon } from '@repo/ui/Github';
+// import { GitHubLogoIcon } from '@repo/ui/Github';
 // import { sign } from "crypto";
 export default function Home() {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -307,7 +307,7 @@ export default function Home() {
             <DoodleButton variant="primary" size="lg" className="font-gamja">Start drawing</DoodleButton>
             <Link href="https://github.com/excalidraw/excalidraw" target="_blank" rel="noopener noreferrer">
               <DoodleButton variant="outline" size="lg" className="font-gamja">
-                <GitHubLogoIcon  /> GitHub Account
+                GitHub Account
               </DoodleButton>
             </Link>
           </div>
@@ -510,8 +510,7 @@ export default function Home() {
               <DoodleButton variant="primary" size="lg" className="font-gamja">Draw now</DoodleButton>
             </Link>
             <Link href="https://github.com/excalidraw/excalidraw" target="_blank" rel="noopener noreferrer">
-              <DoodleButton variant="outline" size="lg" className="font-gamja">
-                <GitHubLogoIcon /> GitHub
+              <DoodleButton variant="outline" size="lg" className="font-gamja"> GitHub
               </DoodleButton>
             </Link>
           </div>

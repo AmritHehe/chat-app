@@ -16,6 +16,7 @@ app.get('/', (_, res) => {
   res.send('WebSocket server is live');
 });
 import {prismaClient} from "@repo/db/client"
+import { parse } from 'path';
 const PORT = parseInt(process.env.PORT || "8080");
 
 
@@ -203,8 +204,11 @@ wss.on('connection', function connection(ws, request) {
     if(parseData.type == "clear"){ 
       console.log("???")
       try { 
-        const roomId = parseData.roomId; 
-        await prismaClient.chat.deleteMany({})
+        const roomId = parseData.roomId
+        const NumroomId = parseInt(parseData.roomId); 
+        await prismaClient.chat.deleteMany({where : { 
+          roomId : NumroomId
+        }})
         users.forEach(user => { 
         if(user.rooms.includes(roomId)){ 
           user.ws.send(JSON.stringify({
@@ -216,7 +220,7 @@ wss.on('connection', function connection(ws, request) {
       console.log("Thanos Swap done")
 
       }catch(e){ 
-        console.log("thanos swap failed")
+        console.log("thanos swap failed" + e)
       }
     }
 
