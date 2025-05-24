@@ -236,7 +236,7 @@ export default function Canvas ({roomId , socket} : {
            <div className="absolute top-0 px-4 m-4 rounded-lg bg-white invert">
             
            
-            {/* <button onClick={()=> {setShape("drag"); setMenu(false)}} className={ currShape == "drag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}>
+           {/* <button onClick={()=> {setShape("drag"); setMenu(false)}} className={ currShape == "drag" ? `bg-yellow-700 p-2.5 m-1 rounded-lg`:`bg-white p-2.5 m-1 rounded-lg`}> */}
                 {/* Drag */}
                 {/* <Drag/> */}
             {/* </button>  */}

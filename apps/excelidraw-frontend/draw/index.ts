@@ -4,7 +4,8 @@ import { HTTP_BACKEND } from "@/config"
 // import { setHeapSnapshotNearHeapLimit } from "v8";
 import { RefObject } from "react";
 import { json, text } from "stream/consumers";
-import { Fascinate } from "next/font/google";
+import { Fascinate, Qahiri } from "next/font/google";
+import { requestFormReset } from "react-dom";
 
 type Shape = { 
     type: "rect" ; 
@@ -55,8 +56,8 @@ type Shape = {
     type : "line"; 
     startX : number;
     startY : number ;
-    x : number ; 
-    y : number ; 
+    currentX : number ; 
+    currentY : number ; 
     strokeW ?: number ; 
     strokeC ?: string ;
     DBid ?: number
@@ -309,8 +310,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
 
         function is_mouse_in_shape(x:number , y :number , shape :any){ 
-            console.log("inside rect")
+            
             if(shape.type == "rect"){ 
+                console.log("inside rect")
+                console.log("SHAPE i GOT "  + JSON.stringify(shape) + " x " + x + " y " + y)
                 let shape_Left ;
                 let shape_Right ; 
                 let shape_Top ; 
@@ -341,7 +344,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     shape_Top = shape.y + shape.height ; 
                     shape_Bottom = shape.y;
                 }
-
+                console.log("shape Left + " + shape_Left + " shape_Right " + shape_Right + " shape_Top" + shape_Top + " shape_Bottom " +shape_Bottom )
                 if(x > shape_Left && x < shape_Right && y > shape_Top && y < shape_Bottom){ 
                     return true
                  }
@@ -377,6 +380,23 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         return true
                     }
                  }
+            }
+            else if(shape.type == "line"|| shape.type == "arrow" || shape.type == "heart"){ 
+                let width = shape.currentX - shape.startX; 
+                let height =shape.currentY - shape.startY ;
+                let startX = shape.startX;
+                let startY = shape.startY;
+                let newShape = { 
+                    type : "rect" ,
+                    x : startX , 
+                    y : startY ,  
+                    height : height ,
+                    width : width ,
+                    DBid : shape.DBid
+                }
+                if(is_mouse_in_shape(x , y , newShape)){ 
+                    return true;
+                }
             }
             else{ 
                 return false;
@@ -627,7 +647,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             e.preventDefault()  
             // canvas.style.cursor = "drag"
             for(let shape of existingShapes){  
-                if(shape.type == "rect" || shape.type == "circle" || shape.type == "pencil"){
+                if(shape.type == "rect" || shape.type == "circle" || shape.type == "pencil"|| shape.type =="line"){
                     if(is_mouse_in_shape(startX , startY ,shape)){
                         if(shape.DBid == null){ 
                             console.warn("shape foound nut missign db id " , shape); 
@@ -845,8 +865,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 type : "line" , 
                 startX : startX , 
                 startY : startY ,
-                x : endPointX , 
-                y : endPointY , 
+                currentX : endPointX , 
+                currentY : endPointY , 
                 strokeW  : strokeRef.current , 
                 strokeC : strokeColorRef.current
             }
@@ -977,6 +997,42 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     type : "pencil" , 
                     X : current_shape.X , 
                     Y : current_shape.Y ,
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
+                    DBid : current_shape.DBid
+                }
+            }
+            else if(current_shape.type == "line"){
+                shape = { 
+                    type :"line", 
+                    startX : current_shape.startX ,
+                    startY : current_shape.startY , 
+                    currentX : current_shape.currentX , 
+                    currentY : current_shape.currentY , 
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
+                    DBid : current_shape.DBid
+                }
+            }
+            else if(current_shape.type == "arrow"){ 
+                shape = { 
+                    type : "arrow", 
+                    startX : current_shape.startX ,
+                    startY : current_shape.startY , 
+                    currentX : current_shape.currentX , 
+                    currentY : current_shape.currentY , 
+                    strokeC : current_shape.strokeC , 
+                    strokeW : current_shape.strokeW ,
+                    DBid : current_shape.DBid
+                }
+            }
+            else if(current_shape.type == "heart"){ 
+                shape = { 
+                    type : "heart", 
+                    startX : current_shape.startX ,
+                    startY : current_shape.startY , 
+                    currentX : current_shape.currentX , 
+                    currentY : current_shape.currentY , 
                     strokeC : current_shape.strokeC , 
                     strokeW : current_shape.strokeW ,
                     DBid : current_shape.DBid
@@ -1377,6 +1433,25 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             Redraw();
                             startX = mouseX; 
                             startY = mouseY;
+                        }
+                        else if (current_shape.type == "line" || current_shape.type == "arrow"){ 
+                            current_shape.startX += dx; 
+                            current_shape.startY += dy; 
+                            current_shape.currentX += dx; 
+                            current_shape.currentY +=dy;
+
+                            Redraw(); 
+                            startX = mouseX ; 
+                            startY = mouseY ;
+                        }
+                        else if(current_shape.type == "heart"){ 
+                            current_shape.startX += dx; 
+                            current_shape.startY += dy; 
+                            current_shape.currentX += dx ; 
+                            current_shape.currentY += dy;
+                            Redraw(); 
+                            startX = mouseX ; 
+                            startY = mouseY ;
                         }
                         
                     }
@@ -1783,7 +1858,7 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 // ctx.moveTo(shape.startX , shape.startY); 
                 // ctx.lineTo(shape.x , shape.y); 
                 ctx.moveTo(shape.startX , shape.startY); 
-                ctx.lineTo(shape.x , shape.y); 
+                ctx.lineTo(shape.currentX , shape.currentY); 
                 ctx.strokeStyle = shape.strokeC ; 
                 ctx.lineWidth = shape.strokeW ; 
                 ctx.stroke() ; 
