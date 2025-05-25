@@ -312,8 +312,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         function is_mouse_in_shape(x:number , y :number , shape :any){ 
             
             if(shape.type == "rect"){ 
-                console.log("inside rect")
-                console.log("SHAPE i GOT "  + JSON.stringify(shape) + " x " + x + " y " + y)
+                // console.log("inside rect")
+                // console.log("SHAPE i GOT "  + JSON.stringify(shape) + " x " + x + " y " + y)
                 let shape_Left ;
                 let shape_Right ; 
                 let shape_Top ; 
@@ -344,14 +344,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     shape_Top = shape.y + shape.height ; 
                     shape_Bottom = shape.y;
                 }
-                console.log("shape Left + " + shape_Left + " shape_Right " + shape_Right + " shape_Top" + shape_Top + " shape_Bottom " +shape_Bottom )
+                // console.log("shape Left + " + shape_Left + " shape_Right " + shape_Right + " shape_Top" + shape_Top + " shape_Bottom " +shape_Bottom )
                 if(x > shape_Left && x < shape_Right && y > shape_Top && y < shape_Bottom){ 
                     return true
                  }
             }
             else if(shape.type == "circle"){ 
-                console.log("I have reached till here (inside the circle if )")
-                console.log("shape : " + JSON.stringify(shape))
+                // console.log("I have reached till here (inside the circle if )")
+                // console.log("shape : " + JSON.stringify(shape))
                 
                 let shape_left = shape.centerX - shape.radiusX; 
                 let shape_Right =  shape.centerX + shape.radiusX 
@@ -398,6 +398,27 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     return true;
                 }
             }
+            else if(shape.type == "text"){
+                // console.log("reached here !") 
+                let SX = shape.x ;
+                let SY = shape.y ; 
+                let text = shape.text ;
+                let textW = ctx.measureText(text).width;
+                // console.log("text W" + textW)
+                let height = 48;
+                let newShape = { 
+                    type : "rect",
+                    x : SX , 
+                    y : SY , 
+                    height : height , 
+                    width : textW , 
+                    DBid : shape.DBid
+                }
+                if((is_mouse_in_shape(x , y , newShape))){ 
+                    // console.log("intelligent hora sher")
+                    return true;
+                }
+            }
             else{ 
                 return false;
             }
@@ -409,11 +430,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             let shape_Bottom ; 
             let shape_Left ; 
             let shape_Right
-            console.log("hello from is mouse in border")
-            console.log("shape I recieived" + JSON.stringify(shape))
-            console.log("start XX" + startX , "startYY " + startY )
+            // console.log("hello from is mouse in border")
+            // console.log("shape I recieived" + JSON.stringify(shape))
+            // console.log("start XX" + startX , "startYY " + startY )
             if(shape.type == "rect"||shape.type=="circleRect"){ 
-                console.log("inside 1st if")
+                // console.log("inside 1st if")
                 if(shape.width <=0 && shape.height <=0){ 
                     shape_Top = shape.y + shape.height ; 
                     shape_Bottom = shape.y; 
@@ -433,7 +454,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     shape_Right = shape.x; 
                 }
                 if(shape.width > 0 && shape.height > 0){ 
-                    console.log("inside 2nd if");
+                    // console.log("inside 2nd if");
                     shape_Top = shape.y ; 
                     shape_Bottom = shape.y + shape.height ; 
                     shape_Left = shape.x ; 
@@ -1038,6 +1059,16 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     DBid : current_shape.DBid
                 }
             }
+            else if(current_shape.type == "text"){ 
+                shape = { 
+                    type : "text", 
+                    text : current_shape.text , 
+                    x : current_shape.x , 
+                    y : current_shape.y , 
+                    strokeC : current_shape.strokeC , 
+                    DBid : current_shape.DBid
+                }
+            }
             console.log("current shape db ID "+current_shape.DBid)
             socket.send(JSON.stringify({
                 type : "update",
@@ -1453,7 +1484,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             startX = mouseX ; 
                             startY = mouseY ;
                         }
-                        
+                        else if(current_shape.type == "text"){ 
+                            current_shape.x +=dx;
+                            current_shape.y += dy; 
+                            ctx.fillText(current_shape.text , current_shape.x , current_shape.y); 
+                            Redraw(); 
+                            startX  = mouseX ; 
+                            startY = mouseY;
+                        }
                     }
                 }
                 else if(shapeRef.current == "select" && select == true){
