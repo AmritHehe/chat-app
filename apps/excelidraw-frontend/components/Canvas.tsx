@@ -101,8 +101,8 @@ export default function Canvas ({roomId , socket} : {
             console.error('wow, you wrote another bug!');
             return;
         }
-        let percentValue = value*100;
-        let hehe = parseFloat(percentValue.toFixed(5))
+        const percentValue = value*100;
+        const hehe = parseFloat(percentValue.toFixed(5))
         console.log(hehe)
         setZoom(hehe);
         }, []);
