@@ -41,8 +41,10 @@ export function RoomCanvas ({roomId} : {roomId :string}){
     },[roomId , router ,])
     
     if(!socket) { 
-        return <div>
-            Connecting to server.....
+        return <div className="flex h-screen w-screen items-center justify-center">
+            Connecting To Server...
+            <br />
+            It may take a while as the server is hosted on a free instance (could take upto 1 min)
         </div>
     }
 

@@ -69,10 +69,8 @@ wss.on('connection', function connection(ws, request) {
   })
   ws.on('message',async function message(data) {
     let parseData ; 
-    
 
       parseData = JSON.parse(data as unknown as string);
-
 
       if (parseData.type === "join_room"){ 
         const user = users.find( x => x.ws === ws);
@@ -90,51 +88,58 @@ wss.on('connection', function connection(ws, request) {
       if(parseData.type === "chat"){ 
         const roomId = parseData.roomId; 
         const message = parseData.message; 
-
-
-       const created =  await prismaClient.chat.create({
-          data : { 
-            roomId : Number(roomId),
-            message, 
-            userId 
-          }
-        }); 
-        users.forEach(user => {
-          if(user.rooms.includes(roomId)){
-            user.ws.send(JSON.stringify({
-              type : "chat",
-              message:message,
-              roomId,
-              id : created.id,
-              
+        try{
+          const created =  await prismaClient.chat.create({
+           data : { 
+             roomId : Number(roomId),
+              message, 
+              userId 
+            }
+          }); 
+          users.forEach(user => {
+            if(user.rooms.includes(roomId)){
+                user.ws.send(JSON.stringify({
+                type : "chat",
+                message:message,
+                roomId,
+                id : created.id,
             }))
-          }
-        })
-      }
+            }
+          })
+        } 
+        catch(e){ 
+          alert("error " + e + "fixes : please refresh")
+        }
+        }
       if(parseData.type === "update"){ 
         const message = parseData.message ; 
         const roomId = parseData.roomId ; 
 
-        const id = message.DBid
-        await prismaClient.chat.update({
-          where: { 
-            id : message.DBid
-          },
-          data : { 
-            roomId :Number(roomId), 
-            message: JSON.stringify({shape : message}) , 
-            userId
-          }
-        })
-        users.forEach(user => {
-          if(user.rooms.includes(roomId)){
-            user.ws.send(JSON.stringify({
-              type : "update",
-              message:message,
-              roomId,
-            }))
-          }
-        })
+        const id = message.DBid;
+        try {
+          await prismaClient.chat.update({
+            where: { 
+              id : message.DBid
+            },
+            data : { 
+              roomId :Number(roomId), 
+              message: JSON.stringify({shape : message}) , 
+              userId
+            }
+          })
+          users.forEach(user => {
+            if(user.rooms.includes(roomId)){
+              user.ws.send(JSON.stringify({
+                type : "update",
+                message:message,
+                roomId,
+              }))
+            }
+          })
+        }
+        catch(e){ 
+          alert("error " + e + "fixes : please refresh")
+        }
       }
       if(parseData.type == "delete"){ 
         try {

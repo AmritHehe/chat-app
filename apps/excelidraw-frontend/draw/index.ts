@@ -173,7 +173,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     let existingShapes : Shape[] = []; 
     localStorage.setItem("existingShapes" , JSON.stringify(existingShapes))
     existingShapes = await getExistingShapes(roomId)
-    console.log("shru hote hi exisiting shapes ye agy hai dostonn"+JSON.stringify(existingShapes))
+    // console.log("shru hote hi exisiting shapes ye agy hai dostonn"+JSON.stringify(existingShapes))
     let  arrX : any = [];
     let  arrY: any = [];    
     if(!ctx){ 
@@ -185,36 +185,36 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
     socket.onmessage = (event) => { 
         
         const message = JSON.parse(event.data); 
-        console.log("websocket message " + JSON.stringify(message))
+        // console.log("websocket message " + JSON.stringify(message))
         // clearCanvas(existingShapes , canvas , ctx )
         if(message.type == "chat"){ 
             const parseShape = JSON.parse(message.message)
-            console.log("parseshape chat thingy got rfjngdf" + JSON.stringify(parseShape))
+            // console.log("parseshape chat thingy got rfjngdf" + JSON.stringify(parseShape))
             const id:number = JSON.parse(message.id)
             const mainShape = parseShape.shape 
             mainShape.DBid  = id
             existingShapes.push(mainShape)
              localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
             // existingShapes.push(parseShape.shape)
-            console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
+            // console.log("exisitingShapes: "  +JSON.stringify(existingShapes))
             // clearCanvas(existingShapes , canvas , ctx )
             Redraw()
-            console.log("rerenderd")
+            // console.log("rerenderd")
         }
         if(message.type == "update"){ 
             const parseShape =message.message
            for(let i = 0 ; i < existingShapes.length ; i++) { 
             if(parseShape.DBid == existingShapes[i].DBid){ 
                 existingShapes[i] = parseShape;
-                console.log("updated the exisitng shape")
-                console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                // console.log("updated the exisitng shape")
+                // console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                 localStorage.setItem("existingShapes" , JSON.stringify(existingShapes));
                 clearCanvas(existingShapes , canvas , ctx ,cameraZoom )
                 // Redraw()
                 return;
             }
             else { 
-                console.log("cant find the exisiting shape! oh oh")
+                // console.log("cant find the exisiting shape! oh oh")
             }
            }         
         }
@@ -225,8 +225,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 if(parseShape.DBid == existingShapes[i].DBid){ 
                     existingShapes.splice(i , 1)
                     // existingShapes[i] = parseShape;
-                    console.log("deleted the exisitng shape")
-                    console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                    // console.log("deleted the exisitng shape")
+                    // console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                     clearCanvas(existingShapes , canvas , ctx ,cameraZoom )
                     // Redraw()
                     return;
@@ -236,14 +236,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         }
         if(message.type == "deleteMany"){ 
             const parseShape = message.message ; 
-            console.log("parseShape length : " + parseShape.length)
+            // console.log("parseShape length : " + parseShape.length)
             for(let j = 0  ; j < parseShape.length ; j++){ 
                 for(let i = 0 ; i < existingShapes.length ; i++) { 
                     if(parseShape[j].DBid == existingShapes[i].DBid){ 
                         existingShapes.splice(i , 1)
                         // existingShapes[i] = parseShape;
-                        console.log("deleted the exisitng shape")
-                        console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
+                        // console.log("deleted the exisitng shape")
+                        // console.log(" rerenderd exisitingShapes: "  +JSON.stringify(existingShapes))
                         // clearCanvas(existingShapes , canvas , ctx )
                         Redraw()
                     }
@@ -254,9 +254,9 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             
         }
         if(message.type == "liveDraw"){ 
-            console.log("hello from live draw")
+            // console.log("hello from live draw")
             const parseShape = JSON.parse(message.message); 
-            console.log("parsedshape I got husdujfh" + JSON.stringify(parseShape))
+            // console.log("parsedshape I got husdujfh" + JSON.stringify(parseShape))
             function hehe (){ 
             if(!ctx){ 
                  return
@@ -369,11 +369,11 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
             }
             else if (shape.type == "pencil"){ 
-                console.log("shape " + JSON.stringify(shape))
-                console.log("start X and start Y jo aye  , startX " + x + "start Y" + y)
+                // console.log("shape " + JSON.stringify(shape))
+                // console.log("start X and start Y jo aye  , startX " + x + "start Y" + y)
                 let arrayX = shape.X 
                 let arrayY = shape.Y
-                console.log("inside pensil")
+                // console.log("inside pensil")
                 for(let i = 0 ; i < shape.X.length ; i++){ 
                     
                     if((8 >= (Math.abs(arrayX[i] - x))  && 8 >= (Math.abs(arrayY[i] - y)))){
@@ -549,7 +549,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         canvas.addEventListener("mousemove" , (e) => { 
             if(!clicked){
                 if(shapeRef.current == "select"){ 
-                    console.log("hello brosaki from here")
+                    // console.log("hello brosaki from here")
                     let currentX = ((e.clientX - window.innerWidth / 2) / cameraZoom + window.innerWidth/2 - cameraOffset.x) ;
                     let currentY = ((e.clientY - window.innerHeight/ 2) / cameraZoom + window.innerHeight/2 - cameraOffset.y) ; 
                     let index = 0 ;
@@ -612,7 +612,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // Redraw();
             // console.log(cameraOffset)
             cancelRedraw = true ; 
-            console.log(shapeRef.current)
+            // console.log(shapeRef.current)
             clicked = true
             // console.log( "get bounding client rect " + JSON.stringify(rect))
             // console.log("camera zoom when mouseeDown" + cameraZoom)
@@ -626,14 +626,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // startY = e.clientY  - cameraOffset.y ;
             // startX =  getEventLocation(e).x/cameraZoom - cameraOffset.x;
             // startY = getEventLocation(e).y/cameraZoom - cameraOffset.y;
-            console.log("startX " + startX + "staart Y" + startY)
+            // console.log("startX " + startX + "staart Y" + startY)
             
             
             arrX.length = 0; 
             arrY.length = 0;
             // console.log(arrX); 
             // console.log(arrY)
-            console.log("before " + JSON.stringify({existingShapes}));
+            // console.log("before " + JSON.stringify({existingShapes}));
             if(shapeRef.current == "pencil"){ 
                 // ctx.beginPath()
                 arrX = [startX] 
@@ -648,12 +648,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 ctx.moveTo(startX , startY)
             }
             if(shapeRef.current == "text"){
-                console.log("countclick  " + countclick) 
+                // console.log("countclick  " + countclick) 
                 if(countclick == 0){
                 textX = startX ; 
                 textY = startY
-                console.log("yha tk to araha hu")
-                console.log("startX to string" + startX.toString())
+                // console.log("yha tk to araha hu")
+                // console.log("startX to string" + startX.toString())
                 textRef.current.style.top = `${e.clientY}px`
                 textRef.current.style.left = `${e.clientX}px` ;
                 requestAnimationFrame(()=>{textRef.current.focus()})
@@ -661,7 +661,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }
                 else { 
                     countclick +=1;
-                    console.log("sabassh sher ")
+                    // console.log("sabassh sher ")
                 }
             }
             if(shapeRef.current == "drag" || shapeRef.current == "erase"){     
@@ -675,19 +675,19 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             return;
                         }
                         else{ 
-                            console.log("found shape +id " )
+                            // console.log("found shape +id " )
                         }
-                        console.log('yes'); 
+                        // console.log('yes'); 
                         Drag = true;
                         
                         currentShapeIndex = index;
-                        console.log("currentShapeIndexFrom mosueee Down : " + currentShapeIndex)
+                        // console.log("currentShapeIndexFrom mosueee Down : " + currentShapeIndex)
                         //@ts-ignore
                         databaseId = shape.DBid;
                         return;
                     }
                     else{ 
-                        console.log("no")
+                        // console.log("no")
                     }
                     index++;
                 }
@@ -924,14 +924,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 let texttosend = textRef.current.value
                 let textW = ctx.measureText(texttosend).width; 
                 let totallines = Math.ceil(textW/(textRef.current.offsetWidth)) + 1
-                console.log("textref ki width" + textRef.current.offsetWidth)
+                // console.log("textref ki width" + textRef.current.offsetWidth)
 
-                console.log("totalLines " + totallines)
-                console.log("text W" + textW) 
+                // console.log("totalLines " + totallines)
+                // console.log("text W" + textW) 
                 let x = textX; 
                 let y = textY ;
-                console.log("text ref value" + textRef.current.value)
-                console.log("why I am here")
+                // console.log("text ref value" + textRef.current.value)
+                // console.log("why I am here")
                 ctx.font = "50px Gamja_Flower";
                 ctx.fillStyle = strokeColorRef.current;
                 ctx.textBaseline = "hanging";
@@ -948,7 +948,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         strokeC : "#FFFFFF"
                     }
 
-                    console.log("after : " + JSON.stringify({existingShapes}))
+                    // console.log("after : " + JSON.stringify({existingShapes}))
                     socket.send(JSON.stringify({
                         type : "chat",
                         message : JSON.stringify({
@@ -975,17 +975,17 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             e.preventDefault(); 
             Drag = false ; 
             
-            console.log("currentShapeIndex afterwards :::::::>" + currentShapeIndex)
-            console.log("currenttt shape bhi haii " +JSON.stringify(current_shape))
+            // console.log("currentShapeIndex afterwards :::::::>" + currentShapeIndex)
+            // console.log("currenttt shape bhi haii " +JSON.stringify(current_shape))
             for(let i = 0 ; i < existingShapes.length ; i++){ 
                 if (currentShapeIndex == i){ 
                     current_shape = existingShapes[i]; 
-                    console.log("foundeddd the shape here it is : " + current_shape)
+                    // console.log("foundeddd the shape here it is : " + current_shape)
                 }
                 
             }
             
-            console.log("currrent shape : " + current_shape)
+            // console.log("currrent shape : " + current_shape)
             if(current_shape.type == "rect") { 
                 shape = { 
                     type : "rect" , 
@@ -1069,21 +1069,21 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     DBid : current_shape.DBid
                 }
             }
-            console.log("current shape db ID "+current_shape.DBid)
+            // console.log("current shape db ID "+current_shape.DBid)
             socket.send(JSON.stringify({
                 type : "update",
                 //@ts-ignore
                 message :  shape,
                 roomId
             }))
-            console.log("after : " + JSON.stringify({existingShapes}))
+            // console.log("after : " + JSON.stringify({existingShapes}))
             Redraw()
         }
         else if (shapeRef.current == "erase"){ 
             for(let i = 0 ; i < existingShapes.length ; i++){ 
                 if (currentShapeIndex == i){ 
                     current_shape = existingShapes[i]; 
-                    console.log("foundeddd the shape here it is : " + current_shape)
+                    // console.log("foundeddd the shape here it is : " + current_shape)
                 }
                 if(current_shape.type == "rect") { 
                     shape = { 
@@ -1114,7 +1114,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         DBid : current_shape.DBid
                     }
                 }
-                console.log("current shape db ID "+current_shape.DBid)
+                // console.log("current shape db ID "+current_shape.DBid)
                 socket.send(JSON.stringify({
                     type : "delete",
                     //@ts-ignore
@@ -1125,8 +1125,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
         }
         else if(shapeRef.current == "eraseDrag"){ 
-            console.log("shapes to erase " + JSON.stringify(erased_Shapes))
-            console.log("mouse up tk pochgye hai ")
+            // console.log("shapes to erase " + JSON.stringify(erased_Shapes))
+            // console.log("mouse up tk pochgye hai ")
             // let sendhogye = false;
             if(erased_Shapes.length > 0){
                 socket.send(JSON.stringify({
@@ -1139,7 +1139,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             // }
             
             // if(sendhogye){
-                console.log("websocket ya backend tk request pochgyi aur proceed bhi hogyi")
+                // console.log("websocket ya backend tk request pochgyi aur proceed bhi hogyi")
                 erased_Shapes  = []
             // }
             
@@ -1152,14 +1152,14 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             Redraw()
         }
         else if(shapeRef.current == "select" && select == true){ 
-            console.log("sellected shape "+  JSON.stringify(selected_shape))
+            // console.log("sellected shape "+  JSON.stringify(selected_shape))
             if(selected_shape.type != "rect" && selected_shape.type != "circleRect"){ 
-                console.log("yhi se return hogya ")
+                // console.log("yhi se return hogya ")
                 return ;
             }
             let updated_shape = selected_shape
             if(selected_shape.type == "rect"){ 
-                console.log("update request :" + JSON.stringify(selected_shape))
+                // console.log("update request :" + JSON.stringify(selected_shape))
             if( updated_shape.width<=0 &&  updated_shape.height < 0){ 
                updated_shape.x +=  updated_shape.width ; 
                 updated_shape.y +=  updated_shape.height ; 
@@ -1191,7 +1191,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }))
             }
             if(selected_shape.type == "circleRect"){ 
-                console.log("updated_shape " + JSON.stringify(updated_shape))
+                // console.log("updated_shape " + JSON.stringify(updated_shape))
                     updated_shape.radiusY =Math.trunc(updated_shape.height / 2); 
                     updated_shape.radiusX =Math.trunc(updated_shape.width / 2)
                     updated_shape.centerX = Math.trunc(Math.trunc(updated_shape.x) + updated_shape.radiusX) ; 
@@ -1215,7 +1215,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
             }
         }
         else if(shapeRef.current == "clear"){ 
-            console.log("hello from here");
+            // console.log("hello from here");
             socket.send(JSON.stringify({
                     type : "clear",
                     roomId
@@ -1229,7 +1229,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
         
         if(shapeRef.current != "drag" && shapeRef.current!= "pan" && shapeRef.current!= "erase" && shapeRef.current!="eraseDrag" && shapeRef.current != "select" && shapeRef.current != "clear" && shapeRef.current != "text") {
             
-            console.log("after : " + JSON.stringify({existingShapes}))
+            // console.log("after : " + JSON.stringify({existingShapes}))
             socket.send(JSON.stringify({
                 type : "chat",
                 message : JSON.stringify({
@@ -1308,7 +1308,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     const centerX = (startX + (mouseX + window.innerWidth/2 - cameraOffset.x) )/ 2;
                     const centerY = (startY + (mouseY + window.innerHeight/2 - cameraOffset.y )) / 2;
 
-                    console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
+                    // console.log("radiusX " + radiusX , "radiusY " + radiusY + "centerX " + centerX + "centerY " + centerY )
                     ctx.beginPath();
                     ctx.lineWidth =  Math.trunc(strokeRef.current);
                     ctx.ellipse(centerX , centerY , Math.abs(radiusX) , Math.abs(radiusY) , Math.PI * 2 , 0 , Math.PI * 2) 
@@ -1329,8 +1329,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     ctx.lineWidth = 5;
                     // ctx.fillStyle=bodyColorRef.current;
                     ctx.stroke()
-                    console.log("start X of MM " + startX + "start Y" + startY)
-                    console.log("line to of MM X :  " + (mouseX + window.innerWidth/2  - cameraOffset.x) + " Y : " + ( mouseY+ window.innerHeight/2 - cameraOffset.y) )
+                    // console.log("start X of MM " + startX + "start Y" + startY)
+                    // console.log("line to of MM X :  " + (mouseX + window.innerWidth/2  - cameraOffset.x) + " Y : " + ( mouseY+ window.innerHeight/2 - cameraOffset.y) )
                     ctx.closePath()
                 }
                 else if(shapeRef.current == "arrow"){ 
@@ -1432,12 +1432,12 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                         let dx = mouseX - startX ; 
                         let dy = mouseY - startY ; 
-                        console.log(dx , dy); 
+                        // console.log(dx , dy); 
                         
                         
                         current_shape = existingShapes[currentShapeIndex]
-                        console.log(currentShapeIndex)
-                        console.log(current_shape)
+                        // console.log(currentShapeIndex)
+                        // console.log(current_shape)
                         if(current_shape.type == "rect" ){ 
                             current_shape.x += dx ; 
                             current_shape.y += dy;
@@ -1496,8 +1496,8 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                 }
                 else if(shapeRef.current == "select" && select == true){
                     // cancelRedraw= false;
-                    console.log("hello from mouse move ")
-                    console.log("selected shape"+ JSON.stringify(selected_shape))
+                    // console.log("hello from mouse move ")
+                    // console.log("selected shape"+ JSON.stringify(selected_shape))
                     
                     let height = selected_shape.height ;
                     let currentX = (e.clientX - window.innerWidth/2)/cameraZoom
@@ -1506,10 +1506,10 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                     let  mouseY = currentY+window.innerHeight/2 -cameraOffset.y;
                     if(whatToResize == "left" ){ 
                         // console.log("hello from mousemove hehe")
-                        console.log( "hello from left")
-                        console.log("current Selected Shape " + JSON.stringify(selected_shape))
+                        // console.log( "hello from left")
+                        // console.log("current Selected Shape " + JSON.stringify(selected_shape))
                         if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
-                        console.log("left ke plus wale mein")
+                        // console.log("left ke plus wale mein")
                         //  console.log("selected shape width before operations " + selected_shape.width); 
                         // console.log("selected shape before operations X "  + selected_shape.x)
                         let difference  = selected_shape.x- mouseX
@@ -1519,15 +1519,15 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         Redraw()
                         startX = mouseX 
                         startY = mouseY
-                        console.log("selected shape width " + selected_shape.width); 
-                        console.log("selected shape X "  + selected_shape.x)
-                        console.log("current mouse X" + mouseX)
-                         console.log("difference" + difference)
-                         console.log("current mouse X" + mouseX)
+                        // console.log("selected shape width " + selected_shape.width); 
+                        // console.log("selected shape X "  + selected_shape.x)
+                        // console.log("current mouse X" + mouseX)
+                        //  console.log("difference" + difference)
+                        //  console.log("current mouse X" + mouseX)
                          let khikhi = selected_shape.width - 5 + selected_shape.x
-                        console.log("selectedshape width plus selected shape x " + (khikhi))
+                        // console.log("selectedshape width plus selected shape x " + (khikhi))
                         if(selected_shape.width<0){ 
-                            console.log("went from here to right")
+                            // console.log("went from here to right")
                             whatToResize = "right"
                             
                         }
@@ -1542,7 +1542,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         // } 
                         }
                         else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <= 0 && selected_shape.width <=0)){ 
-                            console.log("le bhosdu mein to yha agya left ke minus mein")
+                            // console.log("le bhosdu mein to yha agya left ke minus mein")
                             let difference = selected_shape.x + selected_shape.width -mouseX ; 
                             // selected_shape.x = mouseX ; 
                             selected_shape.width-=difference
@@ -1551,7 +1551,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                             startX = mouseX 
                             startY = mouseY
                              if(selected_shape.width>-1){ 
-                                console.log("went from here to right")
+                                // console.log("went from here to right")
                                 whatToResize = "right"
                             
                             }
@@ -1559,20 +1559,20 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         
                     }
                     else if(whatToResize == "right"){ 
-                        console.log("hello from right")
-                        console.log("current Selected Shape " + JSON.stringify(selected_shape))
+                        // console.log("hello from right")
+                        // console.log("current Selected Shape " + JSON.stringify(selected_shape))
                         if((selected_shape.height > 0 && selected_shape.width > 0)||(selected_shape.height <=0 && selected_shape.width > 0)){ 
-                            console.log("right ke plus wale mein agya")
-                         console.log("current Selected Shape " + JSON.stringify(selected_shape))
+                            // console.log("right ke plus wale mein agya")
+                        //  console.log("current Selected Shape " + JSON.stringify(selected_shape))
 
                         let difference  =  selected_shape.x+selected_shape.width - mouseX
 
                         selected_shape.width-=difference
-                        console.log("selected shape width " + selected_shape.width); 
-                        console.log("selected shape X "  + selected_shape.x)
-                        console.log("current mouse X" + mouseX)
-                         console.log("difference" + difference)
-                         console.log("current mouse X" + mouseX)
+                        // console.log("selected shape width " + selected_shape.width); 
+                        // console.log("selected shape X "  + selected_shape.x)
+                        // console.log("current mouse X" + mouseX)
+                        //  console.log("difference" + difference)
+                        //  console.log("current mouse X" + mouseX)
                         Redraw()
                         startX = mouseX 
                         startY = mouseY
@@ -1586,7 +1586,7 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
                         }  
                         } 
                         else if((selected_shape.height > 0 && selected_shape.width <= 0)||(selected_shape.height <=0 && selected_shape.width <= 0)){ 
-                            console.log("le bhosdu right wale mein bhi agya right ke minus wale mein  ")
+                            // console.log("le bhosdu right wale mein bhi agya right ke minus wale mein  ")
                             let difference = selected_shape.x  -mouseX ; 
                             selected_shape.x = mouseX ; 
                             selected_shape.width+=difference
@@ -1677,42 +1677,42 @@ export async function initDraw(canvas : HTMLCanvasElement , roomId : string  , s
 
                     let  mouseX = currentX + window.innerWidth/2 -cameraOffset.x; 
                     let  mouseY = currentY + window.innerHeight/2 -cameraOffset.y;
-                    console.log(mouseX , mouseY)
+                    // console.log(mouseX , mouseY)
                     for ( let shape of existingShapes) { 
-                        console.log("reached inside to find shape")
+                        // console.log("reached inside to find shape")
                         if(is_mouse_in_shape(mouseX , mouseY , shape)){ 
-                            console.log("checked the shape ")
+                            // console.log("checked the shape ")
                             if(erased_Shapes.length==0){ 
-                                console.log("the length of errased shapes is 0 so direct push")
+                                // console.log("the length of errased shapes is 0 so direct push")
                                 erased_Shapes.push(shape)
                             }
                             else {
                                 let hehe = false;
                                 for(let i = 0 ; i < erased_Shapes.length ; i++){ 
-                                    console.log("checking if the shape doesnt already presesnt in the erased array")
-                                    console.log("that fake bitch"+JSON.stringify( erased_Shapes[i]))
-                                    console.log("that fake bitch db id " + erased_Shapes[i].DBid)
-                                    console.log("current shape db id" + shape.DBid)
+                                    // console.log("checking if the shape doesnt already presesnt in the erased array")
+                                    // console.log("that fake bitch"+JSON.stringify( erased_Shapes[i]))
+                                    // console.log("that fake bitch db id " + erased_Shapes[i].DBid)
+                                    // console.log("current shape db id" + shape.DBid)
                                     if(shape.DBid != erased_Shapes[i].DBid){
-                                        console.log("hehe true krdia")
+                                        // console.log("hehe true krdia")
                                         hehe = true ;
                                         // return;
                                     }  
                                     else{ 
-                                        console.log("hehe false krdia")
+                                        // console.log("hehe false krdia")
                                         // // return
                                         hehe = false;
                                         return;
                                     }                              
                                 }
                                 if(hehe){ 
-                                    console.log("pushed the shape")
+                                    // console.log("pushed the shape")
                                     erased_Shapes.push(shape)
                                 }
                             }
                         }
                     }
-                    console.log(erased_Shapes)
+                    // console.log(erased_Shapes)
                 }
                 // else if(shapeRef.current == "pencil"){ }
                 // ctx.ellipse(startX , startY , width , height , Math.PI / 4, 0, 2 * Math.PI)
@@ -1859,7 +1859,6 @@ function clearCanvas(existingShapes : Shape[] ,canvas : HTMLCanvasElement, ctx :
                 //@ts-ignore
                 ctx.fillStyle = shape.Fill
                 ctx.fill();
-                
                 ctx.stroke()
                 ctx.closePath();
             }else if (shape.type == "circle"){ 
@@ -2006,10 +2005,10 @@ async function getExistingShapes(roomId : string ) {
     const res = await  axios.get(`${HTTP_BACKEND}/chats/${roomId}`); 
     //@ts-ignore
     let localres  = JSON.parse(localStorage.getItem("existingShapes"))
-    console.log("localstorage se ye items aye" + JSON.stringify(localres))
+    // console.log("localstorage se ye items aye" + JSON.stringify(localres))
     const messages = res.data.messages; 
-    console.log("hello from get exisiting sapes"); 
-    console.log("message reciive : "  + JSON.stringify(messages))
+    // console.log("hello from get exisiting sapes"); 
+    // console.log("message reciive : "  + JSON.stringify(messages))
 
     // const parseShape = JSON.parse(message.message)
     //         const id:number = JSON.parse(message.id)
@@ -2028,7 +2027,7 @@ async function getExistingShapes(roomId : string ) {
         shape.DBid = id ; 
         
         // return messageData.shape;
-        console.log(" shape jo aaraha hai " + JSON.stringify(shape))
+        // console.log(" shape jo aaraha hai " + JSON.stringify(shape))
         return shape; 
 
     })
